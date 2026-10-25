@@ -88,9 +88,20 @@ accepts "82,5".
   that prefix list. If both are missing, run in demo
   mode on local data with a "Not connected" banner.
 
+## Reminders (Web Push)
+- `supabase/functions/send-reminders/index.ts` (Deno Edge Function), with
+  pure, Node-tested helpers in `supabase/functions/_shared/`: `webpush.ts`
+  (RFC 8291 encryption + VAPID, Web Crypto only) and `reminders.ts` (which
+  reminders fire in a given UK hour). `npm test` runs both test files.
+- Client: `src/lib/push.ts`, `src/screens/RemindersCard.tsx`, and
+  `public/push-sw.js` (imported into the generated service worker).
+- Reminder choices live in settings (`settings.reminders`); `push_log`
+  stops repeats. Add new reminder kinds in `reminders.ts` and its test.
+
 ## Secrets
 Never put keys in the repo, in code, or in chat. Supabase values go into
-Vercel environment variables; the USDA key lives only in a server-side
+Vercel environment variables; the VAPID private key and CRON_SECRET live only
+in Supabase Edge Function secrets; the USDA key lives only in a server-side
 Vercel function; inbox tokens are never logged.
 
 ## Parked

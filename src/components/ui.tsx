@@ -530,3 +530,25 @@ export function Notice({ tone = 'violet', children }: { tone?: 'violet' | 'rose'
   }[tone];
   return <div className={cx('rounded-btn px-3 py-2.5 text-[14px] font-medium', styles)}>{children}</div>;
 }
+
+/* Toggle switch */
+
+export function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={() => onChange(!checked)}
+      className={cx('relative h-8 w-[52px] shrink-0 rounded-full transition-colors', checked ? 'bg-green' : 'bg-line2')}
+    >
+      <span
+        className={cx(
+          'absolute top-[3px] h-[26px] w-[26px] rounded-full bg-surface shadow-[0_1px_2px_rgb(0_0_0/0.2)] transition-[left]',
+          checked ? 'left-[23px]' : 'left-[3px]'
+        )}
+      />
+    </button>
+  );
+}

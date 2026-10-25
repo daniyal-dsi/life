@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Bell,
   CalendarDays,
   Check,
   ChevronRight,
@@ -21,6 +20,7 @@ import { formatStamp } from '@/lib/date';
 import { useHousehold } from '@/lib/household';
 import { listInbox, type InboxItem } from '@/lib/inbox';
 import { useSettings, type Theme } from '@/lib/settings';
+import RemindersCard from './RemindersCard';
 
 function initials(name: string): string {
   return (
@@ -275,8 +275,7 @@ function InboxCard() {
 
 const CONNECTIONS = [
   { icon: MessageSquareText, title: 'WhatsApp Shortcut', body: 'Send Masjid Mubarak times from WhatsApp. Step 7.' },
-  { icon: CalendarDays, title: 'Google Calendar', body: 'Two-way sync with your main calendar. Step 6.' },
-  { icon: Bell, title: 'Reminders', body: 'Phone notifications for due milestones. Coming soon.' }
+  { icon: CalendarDays, title: 'Google Calendar', body: 'Two-way sync with your main calendar. Step 6.' }
 ];
 
 export default function MoreScreen() {
@@ -332,6 +331,11 @@ export default function MoreScreen() {
           </Card>
         </section>
       )}
+
+      <section>
+        <SectionTitle>Reminders</SectionTitle>
+        <RemindersCard />
+      </section>
 
       <section>
         <SectionTitle>Connections</SectionTitle>
