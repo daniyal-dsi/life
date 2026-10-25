@@ -53,6 +53,9 @@ Anything a person can edit or delete uses `src/lib/versioned.ts`. Tables have
 version, a delete appends one with `deleted = true`, and `currentOf()` folds
 them (newest wins). Starter data uses `stableId()` so seeding is idempotent.
 Add `*_current` views with `security_invoker = true` for analysis.
+Household-shared tables (Meal Prep) add `household_id`: pass `householdId` to
+`useVersionedTables()` and use the `is_household_member()` RLS policies (see
+0006); seed with ids keyed by the household so either person can seed it.
 A module store wraps `useVersionedTables()` (`src/lib/useVersioned.ts`), which
 loads the tables, seeds on first use and appends versions; see the Lift Log
 and Fuel Log stores. `dataOf()` strips ids before writing a new version.

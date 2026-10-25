@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from './auth';
 import { appendVersions, loadVersions, type Version } from './versioned';
 
-// Loads a module's versioned tables for the signed-in person, seeds starter
-// data on first use, and appends new versions. Each module wraps this in its
-// own store (see modules/liftlog/store.tsx).
+// Loads a module's versioned tables for the signed-in person (or, with
+// `householdId`, for their household), seeds starter data on first use, and
+// appends new versions. Each module wraps this in its own store (see
+// modules/liftlog/store.tsx; modules/mealprep/store.tsx for a shared one).
 
 export type VersionSets<K extends string> = Record<K, Version<unknown>[]>;
 
@@ -13,11 +14,15 @@ export function useVersionedTables<K extends string>(
   options: {
     /** True when this person has never used the module (decides seeding). */
     needsSeed: (v: VersionSets<K>) => boolean;
-    seed: (userId: string) => Promise<Partial<VersionSets<K>>>;
+    seed: (userId: string, householdId?: string) => Promise<Partial<VersionSets<K>>>;
+    /** Set for household-shared tables; undefined means personal tables. */
+    householdId?: string | null;
   }
 ) {
   const { user } = useAuth();
   const userId = user?.id ?? null;
+  const shared = 'householdId' in options;
+  const householdId = options.householdId ?? undefined;
   const keys = Object.keys(tables) as K[];
   const empty = Object.fromEntries(keys.map((k) => [k, []])) as unknown as VersionSets<K>;
   const [versions, setVersions] = useState<VersionSets<K>>(empty);
@@ -25,11 +30,11 @@ export function useVersionedTables<K extends string>(
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || (shared && !householdId)) return;
     let cancelled = false;
     const loadAll = async () =>
       Object.fromEntries(
-        await Promise.all(keys.map(async (k) => [k, await loadVersions<unknown>(tables[k], userId)] as const))
+        await Promise.all(keys.map(async (k) => [k, await loadVersions<unknown>(tables[k], userId, householdId)] as const))
       ) as VersionSets<K>;
     (async () => {
       setLoading(true);
@@ -37,8 +42,8 @@ export function useVersionedTables<K extends string>(
       try {
         let v = await loadAll();
         if (options.needsSeed(v)) {
-          const seed = await options.seed(userId);
-          for (const k of keys) if (seed[k]?.length) await appendVersions(tables[k], userId, seed[k]!);
+          const seed = await options.seed(userId, householdId);
+          for (const k of keys) if (seed[k]?.length) await appendVersions(tables[k], userId, seed[k]!, householdId);
           v = await loadAll();
         }
         if (!cancelled) setVersions(v);
@@ -52,17 +57,17 @@ export function useVersionedTables<K extends string>(
       cancelled = true;
     };
     // Tables and options are module constants.
-  }, [userId]);
+  }, [userId, householdId]);
 
   const append = useCallback(
     async (key: K, rows: Version<unknown>[]) => {
       if (!userId) throw new Error('Not signed in.');
       if (!rows.length) return;
-      await appendVersions(tables[key], userId, rows);
+      await appendVersions(tables[key], userId, rows, householdId);
       setVersions((v) => ({ ...v, [key]: [...v[key], ...rows] }));
     },
-    // `tables` is a module constant, so only the user matters.
-    [userId]
+    // `tables` is a module constant, so only the user and household matter.
+    [userId, householdId]
   );
 
   return { userId, versions, loading, error, append };

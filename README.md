@@ -34,7 +34,7 @@ npm run preview   # serve the build
 2. **Run the migrations, in order.** In the dashboard open **SQL Editor > New
    query**, paste the whole of each file in [`supabase/migrations/`](supabase/migrations)
    and click **Run**, one file at a time: `0001_foundations.sql`, then
-   `0002_liftlog.sql`, `0003_fuellog.sql`, `0004_workflow.sql`, `0005_reminders.sql`, and so on. Each file runs once; when a new step adds a
+   `0002_liftlog.sql`, `0003_fuellog.sql`, `0004_workflow.sql`, `0005_reminders.sql`, `0006_mealprep_library.sql`, and so on. Each file runs once; when a new step adds a
    file, run just that one. (With the Supabase CLI you can instead run
    `supabase link` then `supabase db push`.)
 3. **Sign-in emails.** Under **Authentication > URL Configuration** set the
@@ -109,8 +109,9 @@ supabase/migrations/   SQL to run in Supabase
 
 ## Not built yet
 
-The modules after Workflow: Meal Prep, Calendar, Faith and the full Home
-screen. See the build order in the brief.
+The rest of Meal Prep (5b week plan and shopping list, 5c Fuel Log link,
+5d nutrition databases), then Calendar, Faith and the full Home screen. See
+the build order in the brief.
 
 ## Lift Log (step 2)
 
@@ -196,4 +197,21 @@ shows what was sent, and `select * from cron.job_run_details order by
 start_time desc limit 5;` shows the hourly runs.
 
 The encryption and reminder rules have tests: `npm test`.
+
+## Meal Prep (step 5a: library)
+
+In **Health > Meal Prep**, shared by everyone in the household. The first
+time anyone opens it, it imports the seven meals and their ingredients from
+"Meal Planning.xlsx" (amounts are cooked weight per portion).
+
+- **Meals:** per-portion calories and macros that update as you edit; lines
+  that can't be counted (no amount, no unit size, no nutrition) are listed.
+  An optional recipe link (with or without https://) shows an **Open recipe**
+  button.
+- **Ingredients:** aisle, staple, cooked weight from 100 g raw, grams per
+  unit, and nutrition per 100 g cooked with its source. Vague names such as
+  "Chicken" or "Rice" can't be saved; imported Veg, Tuna and Greek yoghurt are
+  flagged **Type?** with suggestions.
+- Imported nutrition values are starter values (marked "starter") to check
+  against the food databases, which arrive in step 5d.
 

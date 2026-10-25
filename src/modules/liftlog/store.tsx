@@ -35,7 +35,7 @@ const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompar
 const OPTIONS = {
   // First visit: add the starter library, templates and sample history.
   needsSeed: (v: Record<keyof typeof TABLES, Version<unknown>[]>) => v.exercises.length === 0,
-  seed: buildSeed
+  seed: (uid: string) => buildSeed(uid)
 };
 
 export function LiftLogProvider({ children }: { children: ReactNode }) {
