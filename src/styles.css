@@ -1,0 +1,134 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Design tokens. Values are space-separated RGB so Tailwind can apply opacity.
+  Light is the default; dark applies when the user picks it, or when they pick
+  "system" and the phone is in dark mode.
+*/
+:root {
+  --bg: 244 242 238;          /* #F4F2EE */
+  --surface: 255 255 255;
+  --line: 231 227 219;        /* #E7E3DB */
+  --line2: 220 214 203;       /* #DCD6CB */
+  --chip: 239 235 228;        /* #EFEBE4 */
+  --segbg: 233 229 221;       /* #E9E5DD */
+  --text: 18 17 23;           /* #121117 */
+  --muted: 107 104 117;       /* #6B6875 */
+  --hero: 18 17 23;
+  --hero-muted: 163 160 174;  /* #A3A0AE */
+  --hero-line: 44 42 53;      /* #2C2A35 */
+  --coral: 255 107 74;        /* #FF6B4A */
+  --coral-soft: 255 225 216;
+  --coral-ink: 168 54 26;
+  --green: 47 191 127;        /* #2FBF7F */
+  --green-hi: 94 224 161;
+  --green-soft: 221 245 232;
+  --green-ink: 15 122 82;
+  --sun: 255 200 61;          /* #FFC83D */
+  --sun-soft: 255 243 209;
+  --sun-ink: 122 78 0;
+  --violet: 108 92 231;       /* #6C5CE7 */
+  --violet-hi: 169 159 255;
+  --violet-soft: 236 233 255;
+  --violet-ink: 75 60 196;
+  --rose: 225 29 72;          /* #E11D48 */
+  --rose-soft: 255 228 234;
+  --rose-ink: 159 18 57;
+  --p2-bg: 255 233 194;
+  --p2-ink: 138 83 0;
+  --faith: 14 77 66;          /* #0E4D42 */
+  --faith-ink: 14 90 76;
+  --faith-soft: 226 240 235;
+  --gold: 201 161 74;         /* #C9A14A */
+  --gold-hi: 232 201 121;
+  --gold-ink: 138 106 30;
+  --niche: 251 247 238;       /* #FBF7EE */
+  color-scheme: light;
+}
+
+.theme-dark {
+  --bg: 17 16 23;
+  --surface: 26 24 34;
+  --line: 42 39 52;
+  --line2: 54 50 67;
+  --chip: 34 31 44;
+  --segbg: 34 31 44;
+  --text: 242 240 247;
+  --muted: 160 156 176;
+  --hero: 31 27 46;
+  --hero-muted: 160 156 176;
+  --hero-line: 54 50 67;
+  --coral-soft: 44 25 20;
+  --coral-ink: 255 180 162;
+  --green-soft: 16 41 30;
+  --green-ink: 74 222 155;
+  --sun-soft: 43 35 15;
+  --sun-ink: 255 213 101;
+  --violet: 139 125 255;
+  --violet-soft: 42 37 69;
+  --violet-ink: 201 194 255;
+  --rose: 251 77 115;
+  --rose-soft: 46 18 25;
+  --rose-ink: 255 143 166;
+  --p2-bg: 51 39 14;
+  --p2-ink: 255 200 61;
+  --faith: 18 63 55;
+  --faith-ink: 127 214 192;
+  --faith-soft: 19 42 37;
+  --gold: 212 176 90;
+  --gold-hi: 235 207 132;
+  --gold-ink: 226 194 119;
+  --niche: 21 32 29;
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: rgb(var(--bg));
+  color: rgb(var(--text));
+  font-family: 'DM Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+:focus-visible {
+  outline: 2px solid rgb(var(--violet));
+  outline-offset: 2px;
+}
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+.safe-x {
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.animate-sheet {
+  animation: sheet-up 0.2s ease-out;
+}
