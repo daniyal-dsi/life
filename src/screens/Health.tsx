@@ -1,10 +1,11 @@
-import { Apple, CookingPot } from 'lucide-react';
+import { CookingPot } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { EmptyState, Header, Page, StatTile, UnderlineTabs, type TabItem } from '@/components/ui';
 import { formatLong } from '@/lib/date';
+import FuelLog from '@/modules/fuellog/FuelLog';
 import LiftLog from '@/modules/liftlog/LiftLog';
 
-// Health: Lift Log (step 2), with Fuel Log (step 3) and Meal Prep (step 5) still placeholders.
+// Health: Lift Log (step 2) and Fuel Log (step 3); Meal Prep (step 5) is still a placeholder.
 
 type Module = 'lift' | 'fuel' | 'meal';
 
@@ -28,20 +29,7 @@ export default function HealthScreen() {
       </div>
 
       {tab === 'lift' && <LiftLog />}
-      {tab === 'fuel' && (
-        <>
-          <div className="grid grid-cols-2 gap-2.5">
-            <StatTile label="Left today" value="–" unit="kcal" tone="green" />
-            <StatTile label="Protein" value="–" unit="g" tone="green" />
-          </div>
-          <EmptyState
-            icon={Apple}
-            tone="green"
-            title="No targets yet"
-            body="Set your profile to get a daily calorie target, then log what you eat. Fuel Log arrives in step 3."
-          />
-        </>
-      )}
+      {tab === 'fuel' && <FuelLog />}
       {tab === 'meal' && (
         <>
           <div className="grid grid-cols-2 gap-2.5">

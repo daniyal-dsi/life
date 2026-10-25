@@ -7,7 +7,15 @@ import { appendVersions, loadVersions, type Version } from './versioned';
 // Each new module adds its versioned tables to VERSIONED_TABLES as it is built.
 
 /** Module tables that use the versioned-records layout (see versioned.ts). */
-const VERSIONED_TABLES = ['liftlog_exercises', 'liftlog_templates', 'liftlog_workouts'] as const;
+const VERSIONED_TABLES = [
+  'liftlog_exercises',
+  'liftlog_templates',
+  'liftlog_workouts',
+  'fuellog_profile',
+  'fuellog_foods',
+  'fuellog_entries',
+  'fuellog_weights'
+] as const;
 
 const APP = 'life-organiser';
 const VERSION = 1;
