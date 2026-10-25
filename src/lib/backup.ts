@@ -14,7 +14,11 @@ const VERSIONED_TABLES = [
   'fuellog_profile',
   'fuellog_foods',
   'fuellog_entries',
-  'fuellog_weights'
+  'fuellog_weights',
+  'workflow_buckets',
+  'workflow_projects',
+  'workflow_milestones',
+  'workflow_people'
 ] as const;
 
 const APP = 'life-organiser';

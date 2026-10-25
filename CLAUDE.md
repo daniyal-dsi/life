@@ -36,6 +36,10 @@ Hosted on Vercel. Path alias `@` -> `src`.
 - `src/modules/<module>/`: each module owns its data and screens: `types.ts`,
   `store.tsx` (provider + hook), pure logic such as `stats.ts`, `seed.ts`,
   sheets and the main screen. Lift Log is the pattern to copy.
+- `src/components/Sortable.tsx`: drag-to-reorder list (handle, touch, mouse
+  and arrow keys); used for Workflow milestones.
+- Module sub-screens use nested routes under the area path (Workflow:
+  `/work`, `/work/b/:id`, `/work/p/:id`), inside the module's provider.
 - `src/components/charts.tsx`: LineChart (hover readout + table view) and
   Donut (legend with shares). Chart colours are validated tokens (`--g-*` for
   muscle groups); run the dataviz validator before adding a new palette.
