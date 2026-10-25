@@ -52,7 +52,13 @@ export default {
         'tab-fg': v('tab-fg'),
         'tab-on': v('tab-on'),
         'tab-on-fg': v('tab-on-fg'),
-        'tab-line': v('tab-line')
+        'tab-line': v('tab-line'),
+        'g-chest': v('g-chest'),
+        'g-back': v('g-back'),
+        'g-shoulders': v('g-shoulders'),
+        'g-legs': v('g-legs'),
+        'g-arms': v('g-arms'),
+        'g-core': v('g-core')
       },
       fontFamily: {
         display: ['"Bricolage Grotesque"', 'ui-sans-serif', 'system-ui', 'sans-serif'],

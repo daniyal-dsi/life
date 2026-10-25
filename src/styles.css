@@ -67,6 +67,14 @@
   --k-violet-bg: var(--violet);
   --k-fg: 22 20 31;
   --k-violet-fg: 255 255 255;
+  /* Muscle-group chart colours (validated for colour-blind separation in
+     ring order chest, back, shoulders, legs, arms, core). */
+  --g-chest: 235 104 52;      /* #eb6834 */
+  --g-back: 74 58 167;        /* #4a3aa7 */
+  --g-shoulders: 27 175 122;  /* #1baf7a */
+  --g-legs: 237 161 0;        /* #eda100 */
+  --g-arms: 232 123 164;      /* #e87ba4 */
+  --g-core: 42 120 214;       /* #2a78d6 */
   color-scheme: light;
 }
 
@@ -127,6 +135,12 @@
   --k-violet-bg: var(--violet-soft);
   --k-fg: 242 240 247;
   --k-violet-fg: 242 240 247;
+  --g-chest: 217 89 38;
+  --g-back: 144 133 233;
+  --g-shoulders: 25 158 112;
+  --g-legs: 201 133 0;
+  --g-arms: 213 81 129;
+  --g-core: 57 135 229;
   color-scheme: dark;
 }
 
@@ -157,14 +171,22 @@
 .kcard .kbar {
   background: rgb(var(--kbar));
 }
-.k-coral { --kb: var(--k-coral-bg); --kl: var(--k-coral-bg); --kf: var(--k-fg); --kn: var(--k-fg); --kbar: var(--k-fg); --ktr: var(--k-fg) / 0.16; --ki: 255 255 255 / 0.38; --kg: var(--glow-coral); }
-.k-green { --kb: var(--k-green-bg); --kl: var(--k-green-bg); --kf: var(--k-fg); --kn: var(--k-fg); --kbar: var(--k-fg); --ktr: var(--k-fg) / 0.16; --ki: 255 255 255 / 0.38; --kg: var(--glow-green); }
-.k-sun { --kb: var(--k-sun-bg); --kl: var(--k-sun-bg); --kf: var(--k-fg); --kn: var(--k-fg); --kbar: var(--k-fg); --ktr: var(--k-fg) / 0.16; --ki: 255 255 255 / 0.45; --kg: var(--glow-sun); }
-.k-violet { --kb: var(--k-violet-bg); --kl: var(--k-violet-bg); --kf: var(--k-violet-fg); --kn: var(--k-violet-fg); --kbar: var(--k-violet-fg); --ktr: 255 255 255 / 0.25; --ki: 255 255 255 / 0.2; --kg: var(--glow-violet); }
-.theme-dark .k-coral { --kl: var(--coral) / 0.3; --kn: var(--coral); --kbar: var(--coral); --ktr: var(--coral) / 0.2; --ki: var(--coral) / 0.25; }
-.theme-dark .k-green { --kl: var(--green) / 0.28; --kn: var(--green); --kbar: var(--green); --ktr: var(--green) / 0.2; --ki: var(--green) / 0.25; }
-.theme-dark .k-sun { --kl: var(--sun) / 0.28; --kn: var(--sun); --kbar: var(--sun); --ktr: var(--sun) / 0.2; --ki: var(--sun) / 0.25; }
-.theme-dark .k-violet { --kl: var(--violet-hi) / 0.3; --kn: var(--violet-hi); --kbar: var(--violet-hi); --ktr: var(--violet-hi) / 0.22; --ki: var(--violet) / 0.3; }
+/* Filled slot on a coloured card (e.g. a logged workout in the streak card). */
+.kcard .kslot {
+  background: rgb(var(--kbar));
+  color: rgb(var(--kbarfg));
+}
+.kcard .kslot-empty {
+  border: 2px dashed rgb(var(--ktr));
+}
+.k-coral { --kbarfg: 255 255 255; --kb: var(--k-coral-bg); --kl: var(--k-coral-bg); --kf: var(--k-fg); --kn: var(--k-fg); --kbar: var(--k-fg); --ktr: var(--k-fg) / 0.16; --ki: 255 255 255 / 0.38; --kg: var(--glow-coral); }
+.k-green { --kbarfg: 255 255 255; --kb: var(--k-green-bg); --kl: var(--k-green-bg); --kf: var(--k-fg); --kn: var(--k-fg); --kbar: var(--k-fg); --ktr: var(--k-fg) / 0.16; --ki: 255 255 255 / 0.38; --kg: var(--glow-green); }
+.k-sun { --kbarfg: 255 255 255; --kb: var(--k-sun-bg); --kl: var(--k-sun-bg); --kf: var(--k-fg); --kn: var(--k-fg); --kbar: var(--k-fg); --ktr: var(--k-fg) / 0.16; --ki: 255 255 255 / 0.45; --kg: var(--glow-sun); }
+.k-violet { --kbarfg: 22 20 31; --kb: var(--k-violet-bg); --kl: var(--k-violet-bg); --kf: var(--k-violet-fg); --kn: var(--k-violet-fg); --kbar: var(--k-violet-fg); --ktr: 255 255 255 / 0.25; --ki: 255 255 255 / 0.2; --kg: var(--glow-violet); }
+.theme-dark .k-coral { --kbarfg: 22 20 31; --kl: var(--coral) / 0.3; --kn: var(--coral); --kbar: var(--coral); --ktr: var(--coral) / 0.2; --ki: var(--coral) / 0.25; }
+.theme-dark .k-green { --kbarfg: 22 20 31; --kl: var(--green) / 0.28; --kn: var(--green); --kbar: var(--green); --ktr: var(--green) / 0.2; --ki: var(--green) / 0.25; }
+.theme-dark .k-sun { --kbarfg: 22 20 31; --kl: var(--sun) / 0.28; --kn: var(--sun); --kbar: var(--sun); --ktr: var(--sun) / 0.2; --ki: var(--sun) / 0.25; }
+.theme-dark .k-violet { --kbarfg: 22 20 31; --kl: var(--violet-hi) / 0.3; --kn: var(--violet-hi); --kbar: var(--violet-hi); --ktr: var(--violet-hi) / 0.22; --ki: var(--violet) / 0.3; }
 
 html,
 body {

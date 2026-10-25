@@ -86,7 +86,7 @@ export function Card({
 /* Buttons */
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'coral' | 'green' | 'sun' | 'violet';
   icon?: LucideIcon;
   full?: boolean;
 };
@@ -96,7 +96,12 @@ export function Button({ variant = 'primary', icon: Icon, full = true, className
     primary: 'bg-btn text-btn-text',
     secondary: 'border border-line2 bg-surface text-ink',
     ghost: 'bg-transparent text-ink',
-    danger: 'bg-rose-soft text-rose-ink'
+    danger: 'bg-rose-soft text-rose-ink',
+    // Module colours, with dark text as in the mockups.
+    coral: 'bg-coral text-hero',
+    green: 'bg-green text-hero',
+    sun: 'bg-sun text-hero',
+    violet: 'bg-violet text-white'
   }[variant];
   return (
     <button
