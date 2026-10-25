@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, Copy, CookingPot, Link2, Plus, ShoppingCart, Trash2 } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Copy, CookingPot, Link2, Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import { Card, IconButton, Notice, ProgressBar, SectionTitle } from '@/components/ui';
 import { addDays, fromISODate, todayISO, toISODate } from '@/lib/date';
 import { mealFlags, mealMacros } from './macros';
 import { useEaters, useMyTargets } from './people';
 import { cooks, dailyAverage, mondayOf, shoppingList, weekDates, weekPlan } from './plan';
 import SlotSheet, { type SlotRef } from './SlotSheet';
+import EatSheet, { type EatTarget } from './EatSheet';
+import { useMealFoods } from './mealFoods';
+import { useFuelLog } from '@/modules/fuellog/store';
 import { useMealPrep } from './store';
 import { AISLES, MEAL_TYPES } from './types';
 
@@ -29,6 +32,9 @@ export default function PlanView({ monday, setMonday, openShopping }: { monday: 
   const [slot, setSlot] = useState<SlotRef | null>(null);
   const [confirm, setConfirm] = useState<'copy' | 'clear' | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [eat, setEat] = useState<EatTarget | null>(null);
+  const { entries } = useFuelLog();
+  const mealFoods = useMealFoods();
   const today = todayISO();
   useEffect(() => {
     setMessage(null);
@@ -135,7 +141,7 @@ export default function PlanView({ monday, setMonday, openShopping }: { monday: 
                         onClick={() => setSlot({ date: d, slot: s, monday })}
                         className="flex min-h-[52px] items-center gap-2.5 rounded-ctl border-[1.5px] border-dashed border-line2 px-3 text-left text-[14px] font-semibold text-muted"
                       >
-                        <span className="w-[66px] shrink-0 text-[12px] font-bold">{label}</span>
+                        <span className="w-[58px] shrink-0 text-[12px] font-bold">{label}</span>
                         <Plus size={16} strokeWidth={2.5} aria-hidden />
                         Add {s}
                       </button>
@@ -147,32 +153,55 @@ export default function PlanView({ monday, setMonday, openShopping }: { monday: 
                   }
                   const batch = batchSize(s, meal.id);
                   const flagged = mealFlags(meal.lines, M).length > 0;
+                  const canEat = d <= today && !!me && p.eaters.includes(me.id);
+                  const eaten = canEat && entries.some((e) => e.date === d && e.meal === s && e.meal_id === meal.id);
+                  const food = mealFoods.find((f) => f.id === meal.id);
                   return (
+                    <div key={s} className="flex items-center gap-2">
                     <button
-                      key={s}
                       type="button"
                       onClick={() => setSlot({ date: d, slot: s, monday })}
-                      className="flex min-h-[52px] items-center gap-2.5 rounded-ctl border border-line bg-bg px-3 py-2 text-left"
+                      className="flex min-h-[52px] min-w-0 flex-1 items-center gap-2.5 rounded-ctl border border-line bg-bg px-3 py-2 text-left"
                     >
-                      <span className="w-[66px] shrink-0 text-[12px] font-bold text-muted">{label}</span>
+                      <span className="w-[58px] shrink-0 text-[12px] font-bold text-muted">{label}</span>
                       <span className="min-w-0 flex-1">
-                        <span className="block font-bold">{meal.name}</span>
-                        <span className="tnum text-[13px] text-muted">
-                          {num(M.kcal)} kcal · {p.eaters.map(nameOf).join(' & ')}
+                        <span className="block font-bold leading-tight">{meal.name}</span>
+                        <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[13px] text-muted">
+                          <span className="tnum">
+                            {num(M.kcal)} kcal · {p.eaters.map(nameOf).join(' & ')}
+                          </span>
+                          {meal.link && <Link2 size={13} aria-label="Has a recipe link" />}
+                          {batch > 1 && (
+                            <span className="inline-flex h-5 items-center gap-0.5 rounded-[6px] bg-sun-soft px-1.5 text-[11px] font-extrabold text-sun-ink" title="Batch cooked">
+                              <CookingPot size={11} strokeWidth={2.5} aria-hidden />×{batch}
+                            </span>
+                          )}
+                          {flagged && (
+                            <span className="rounded-[6px] bg-coral-soft px-1.5 text-[11px] font-extrabold text-coral-ink" title="Needs attention">
+                              !
+                            </span>
+                          )}
                         </span>
                       </span>
-                      {meal.link && <Link2 size={15} className="shrink-0 text-muted" aria-label="Has a recipe link" />}
-                      {batch > 1 && (
-                        <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-chip bg-sun-soft px-2 text-[12px] font-extrabold text-sun-ink" title="Batch cooked">
-                          <CookingPot size={12} strokeWidth={2.5} aria-hidden />×{batch}
-                        </span>
-                      )}
-                      {flagged && (
-                        <span className="rounded-[6px] bg-coral-soft px-2 text-[11px] font-extrabold text-coral-ink" title="Needs attention">
-                          !
-                        </span>
-                      )}
                     </button>
+                    {eaten ? (
+                      <span className="inline-flex h-8 shrink-0 items-center gap-1 rounded-chip bg-green-soft px-2.5 text-[12px] font-bold text-green-ink">
+                        <Check size={14} strokeWidth={3} aria-hidden />
+                        Eaten
+                      </span>
+                    ) : (
+                      canEat &&
+                      food && (
+                        <button
+                          type="button"
+                          onClick={() => setEat({ date: d, slot: s, meal: food })}
+                          className="h-8 shrink-0 rounded-chip bg-green-soft px-2.5 text-[12px] font-bold text-green-ink"
+                        >
+                          I ate this
+                        </button>
+                      )
+                    )}
+                    </div>
                   );
                 })}
               </div>
@@ -264,6 +293,7 @@ export default function PlanView({ monday, setMonday, openShopping }: { monday: 
       </section>
 
       <SlotSheet slot={slot} onClose={() => setSlot(null)} />
+      <EatSheet target={eat} onClose={() => setEat(null)} />
     </>
   );
 }

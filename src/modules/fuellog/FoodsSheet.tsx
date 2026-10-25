@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { BottomSheet, Button, Field, Notice, inputClass } from '@/components/ui';
 import { oneDp, parseDecimal } from '@/lib/number';
+import { useMealFoods } from '@/modules/mealprep/mealFoods';
 import { useFuelLog } from './store';
 import type { Food } from './types';
 
@@ -14,6 +15,7 @@ const str = (n: number | null) => (n === null ? '' : oneDp(n));
 
 export default function FoodsSheet({ open, onClose, onBack }: { open: boolean; onClose: () => void; onBack?: () => void }) {
   const { foods, saveFood, deleteFood } = useFuelLog();
+  const mealFoods = useMealFoods();
   const [form, setForm] = useState<Form>(blank);
   const [error, setError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<string | null>(null);
@@ -102,6 +104,24 @@ export default function FoodsSheet({ open, onClose, onBack }: { open: boolean; o
             </li>
           ))}
         </ul>
+        {mealFoods.length > 0 && (
+          <div>
+            <p className="mb-1.5 text-[13px] font-bold text-muted">From Meal Prep · one portion · edit recipes in Meal Prep</p>
+            <ul className="flex flex-col gap-2">
+              {mealFoods.map((m) => (
+                <li key={m.id} className="rounded-btn border border-line bg-bg px-3.5 py-2.5">
+                  <span className="flex items-center gap-1.5 font-bold">
+                    {m.name}
+                    <span className="rounded-[6px] bg-sun-soft px-1.5 text-[11px] font-extrabold text-sun-ink">Meal Prep</span>
+                  </span>
+                  <span className="tnum text-[13px] text-muted">
+                    {m.kcal} kcal · P {oneDp(m.p)} · C {oneDp(m.c)} · F {oneDp(m.f)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         {onBack && (
           <Button variant="ghost" onClick={onBack}>
             Back to logging food

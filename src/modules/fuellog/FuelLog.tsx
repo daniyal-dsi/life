@@ -11,6 +11,11 @@ import { FuelLogProvider, useFuelLog } from './store';
 import { dayStatus, totals, type DayStatus } from './targets';
 import { GOALS, MEALS, type Meal } from './types';
 import WeightSheet from './WeightSheet';
+import { useAuth } from '@/lib/auth';
+import EatSheet, { type EatTarget } from '@/modules/mealprep/EatSheet';
+import { useMealFoods } from '@/modules/mealprep/mealFoods';
+import { MealPrepProvider, useOptionalMealPrep } from '@/modules/mealprep/store';
+import type { MealType } from '@/modules/mealprep/types';
 
 const num = (n: number) => Math.round(n).toLocaleString('en-GB');
 const dayLabel = (iso: string) =>
@@ -28,7 +33,10 @@ const STATUS: Record<DayStatus, { cls: string; label: string }> = {
 export default function FuelLog() {
   return (
     <FuelLogProvider>
-      <Dashboard />
+      {/* Meal Prep supplies planned meals ("I ate this") and meals as foods. */}
+      <MealPrepProvider>
+        <Dashboard />
+      </MealPrepProvider>
     </FuelLogProvider>
   );
 }
@@ -40,6 +48,10 @@ function Dashboard() {
   const [food, setFood] = useState<FoodDraft | null>(null);
   const [sheet, setSheet] = useState<'foods' | 'foods-from-log' | 'profile' | 'weight' | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [eat, setEat] = useState<EatTarget | null>(null);
+  const { user } = useAuth();
+  const mealPrep = useOptionalMealPrep();
+  const mealFoods = useMealFoods();
 
   if (loading) return <p className="py-10 text-center text-muted">Loading Fuel Log…</p>;
   if (error) return <Notice tone="rose">{error}</Notice>;
@@ -208,7 +220,31 @@ function Dashboard() {
                     + Add
                   </button>
                 </div>
-                {items.length === 0 && <p className="px-4 py-1 text-[13px] text-muted">Nothing logged</p>}
+                {(() => {
+                  // A planned meal you're eating that you haven't logged yet.
+                  const planned = mealPrep?.plan.find((p) => p.date === date && p.slot === m.id && user && p.eaters.includes(user.id));
+                  const meal = planned && mealFoods.find((f) => f.id === planned.meal_id);
+                  if (!meal || items.some((e) => e.meal_id === meal.id)) return null;
+                  return (
+                    <div className="flex items-center justify-between gap-2 px-4 py-1.5 text-[15px]">
+                      <span className="min-w-0">
+                        <span className="text-muted">Planned:</span> {meal.name}
+                      </span>
+                      {date <= today && (
+                        <button
+                          type="button"
+                          onClick={() => setEat({ date, slot: m.id as MealType, meal })}
+                          className="h-8 shrink-0 rounded-chip bg-green-soft px-3 text-[13px] font-bold text-green-ink"
+                        >
+                          I ate this
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
+                {items.length === 0 && !mealPrep?.plan.some((p) => p.date === date && p.slot === m.id) && (
+                  <p className="px-4 py-1 text-[13px] text-muted">Nothing logged</p>
+                )}
                 {items.map((e) => (
                   <button
                     key={e.id}
@@ -332,6 +368,7 @@ function Dashboard() {
       />
       <ProfileSheet open={sheet === 'profile'} onClose={() => setSheet(null)} />
       <WeightSheet open={sheet === 'weight'} onClose={() => setSheet(null)} />
+      <EatSheet target={eat} onClose={() => setEat(null)} />
     </>
   );
 }

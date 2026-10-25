@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Link2, Plus } from 'lucide-react';
 import { Button, Card, Notice, Segmented, SectionTitle } from '@/components/ui';
 import { todayISO } from '@/lib/date';
+import { FuelLogProvider } from '@/modules/fuellog/store';
 import IngredientSheet from './IngredientSheet';
 import { mealFlags, mealMacros } from './macros';
 import MealEditor from './MealEditor';
@@ -26,7 +27,10 @@ const VIEWS: { id: View; label: string }[] = [
 export default function MealPrep() {
   return (
     <MealPrepProvider>
-      <Screens />
+      {/* Your Fuel Log, for "I ate this" on the plan (without seeding sample data). */}
+      <FuelLogProvider seed={false}>
+        <Screens />
+      </FuelLogProvider>
     </MealPrepProvider>
   );
 }

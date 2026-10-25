@@ -61,6 +61,8 @@ export type EntryData = {
   c: number | null;
   f: number | null;
   sample?: boolean;
+  /** Set when logged from a Meal Prep meal (food_id is then the meal's id). */
+  meal_id?: string | null;
 };
 
 export type WeightData = { date: string; kg: number; sample?: boolean };

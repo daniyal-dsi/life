@@ -177,6 +177,11 @@ export function MealPrepProvider({ children }: { children: ReactNode }) {
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
+/** Meal Prep data when inside its provider, otherwise null (for other modules). */
+export function useOptionalMealPrep(): MealPrepState | null {
+  return useContext(Ctx);
+}
+
 export function useMealPrep(): MealPrepState {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error('useMealPrep must be used inside <MealPrepProvider>');
