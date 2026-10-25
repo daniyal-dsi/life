@@ -22,7 +22,7 @@ const VERSIONED_TABLES = [
 ] as const;
 
 /** Versioned tables shared by the household (exported for, and imported into, your current household). */
-const SHARED_TABLES = ['mealprep_ingredients', 'mealprep_meals'] as const;
+const SHARED_TABLES = ['mealprep_ingredients', 'mealprep_meals', 'mealprep_plan', 'mealprep_shopping'] as const;
 
 const APP = 'life-organiser';
 const VERSION = 1;

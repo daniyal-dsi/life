@@ -34,7 +34,7 @@ npm run preview   # serve the build
 2. **Run the migrations, in order.** In the dashboard open **SQL Editor > New
    query**, paste the whole of each file in [`supabase/migrations/`](supabase/migrations)
    and click **Run**, one file at a time: `0001_foundations.sql`, then
-   `0002_liftlog.sql`, `0003_fuellog.sql`, `0004_workflow.sql`, `0005_reminders.sql`, `0006_mealprep_library.sql`, and so on. Each file runs once; when a new step adds a
+   `0002_liftlog.sql`, `0003_fuellog.sql`, `0004_workflow.sql`, `0005_reminders.sql`, `0006_mealprep_library.sql`, `0007_mealprep_plan.sql`, and so on. Each file runs once; when a new step adds a
    file, run just that one. (With the Supabase CLI you can instead run
    `supabase link` then `supabase db push`.)
 3. **Sign-in emails.** Under **Authentication > URL Configuration** set the
@@ -109,8 +109,8 @@ supabase/migrations/   SQL to run in Supabase
 
 ## Not built yet
 
-The rest of Meal Prep (5b week plan and shopping list, 5c Fuel Log link,
-5d nutrition databases), then Calendar, Faith and the full Home screen. See
+The rest of Meal Prep (5c Fuel Log link, 5d nutrition databases), then
+Calendar, Faith and the full Home screen. See
 the build order in the brief.
 
 ## Lift Log (step 2)
@@ -214,4 +214,21 @@ time anyone opens it, it imports the seven meals and their ingredients from
   flagged **Type?** with suggestions.
 - Imported nutrition values are starter values (marked "starter") to check
   against the food databases, which arrive in step 5d.
+
+## Meal Prep (step 5b: week plan and shopping list)
+
+- **Plan:** Monday to Sunday with breakfast, lunch and dinner. Tap a slot to
+  pick a meal and who's eating (default: everyone in the household). Pick
+  more days under **Batch cook** to put the same meal in that slot on them;
+  the same meal in the same slot across the week is cooked once. **Copy last
+  week** replaces this week with last week's plan; **Clear week** empties it.
+- **Cook plan** lists each cook with its days and portions. **Your daily
+  average** shows the macros of the planned meals you eat against your Fuel
+  Log targets.
+- **Shopping list** (shared): one portion per person per planned meal,
+  grouped by aisle. Cooked weights are converted to raw weights to buy using
+  each ingredient's cooked weight from 100 g raw. Tap an amount to change it
+  (the calculated amount stays visible); tick items off (both phones see the
+  ticks after returning to the app); add other items; staples sit in their
+  own section; **Share list** sends what's left as plain text.
 
