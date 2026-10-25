@@ -3,7 +3,16 @@ import { Mail } from 'lucide-react';
 import { Button, Field, Header, Notice, inputClass } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 
+/** True when opened from a home-screen icon, which has its own storage separate from the browser. */
+function isHomeScreenApp(): boolean {
+  return (
+    window.matchMedia?.('(display-mode: standalone)').matches === true ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true
+  );
+}
+
 export default function SignIn() {
+  const [homeScreen] = useState(isHomeScreenApp);
   const { sendMagicLink, verifyCode } = useAuth();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -42,8 +51,14 @@ export default function SignIn() {
       {!sent ? (
         <form onSubmit={onSend} className="flex flex-col gap-4">
           <p className="text-[15px] text-muted">
-            We'll email you a sign-in link. You only need to do this once on each device.
+            We'll email you a sign-in link and a 6-digit code. You only need to do this once on each device.
           </p>
+          {homeScreen && (
+            <Notice>
+              You're using the home-screen app. When the email arrives, <b>type the 6-digit code here</b>. Don't tap
+              the link: it opens Safari and signs you in there, not in this app.
+            </Notice>
+          )}
           <Field label="Email">
             {(id) => (
               <input
@@ -61,17 +76,27 @@ export default function SignIn() {
           </Field>
           {error && <Notice tone="rose">{error}</Notice>}
           <Button type="submit" icon={Mail} disabled={busy || !email.trim()}>
-            {busy ? 'Sending…' : 'Email me a link'}
+            {busy ? 'Sending…' : homeScreen ? 'Email me a code' : 'Email me a link'}
           </Button>
         </form>
       ) : (
         <form onSubmit={onVerify} className="flex flex-col gap-4">
           <Notice tone="green">
-            Sent to <b>{email}</b>. Open the link on this device, or type the 6-digit code from the email.
+            {homeScreen ? (
+              <>
+                Sent to <b>{email}</b>. Type the 6-digit code from the email below; don't tap the link.
+              </>
+            ) : (
+              <>
+                Sent to <b>{email}</b>. Open the link on this device, or type the 6-digit code from the email.
+              </>
+            )}
           </Notice>
-          <p className="text-[13px] text-muted">
-            Using the app from your home screen? Links open in Safari, so use the code here instead.
-          </p>
+          {!homeScreen && (
+            <p className="text-[13px] text-muted">
+              Using the app from your home screen? Links open in Safari, so use the code there instead.
+            </p>
+          )}
           <Field label="Code">
             {(id) => (
               <input
