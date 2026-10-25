@@ -87,7 +87,7 @@ export default function SlotSheet({ slot, onClose }: { slot: SlotRef | null; onC
         )}
 
         <div>
-          <p className="mb-1.5 text-[13px] font-semibold text-muted">Who's eating</p>
+          <p className="mb-1.5 text-[13px] font-semibold text-muted">Who's eating (tap to turn each person on or off)</p>
           <div className="flex flex-wrap gap-2">
             {eaters.map((e) => (
               <button
@@ -102,6 +102,13 @@ export default function SlotSheet({ slot, onClose }: { slot: SlotRef | null; onC
             ))}
           </div>
         </div>
+
+        {eaters.length === 1 && (
+          <Notice>
+            Only you are in this household, so only your portions are counted. To add Natascha, she opens <b>More</b> on her phone,
+            taps <b>Join with a code</b> and enters the invite code from your More page.
+          </Notice>
+        )}
 
         <div>
           <p className="mb-1.5 text-[13px] font-semibold text-muted">Batch cook: same {slot.slot} on</p>
