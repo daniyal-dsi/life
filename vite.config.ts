@@ -13,7 +13,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/apple-touch-icon.png', 'icons/icon.svg'],
+      includeAssets: ['icons/apple-touch-icon.png', 'icons/icon.svg', 'push-sw.js'],
       manifest: {
         name: 'Life Organiser',
         short_name: 'Life',
@@ -28,7 +28,8 @@ export default defineConfig({
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
         ]
       },
-      workbox: { navigateFallback: '/index.html' }
+      // push-sw.js adds the push and notification-click handlers.
+      workbox: { navigateFallback: '/index.html', importScripts: ['push-sw.js'] }
     })
   ]
 });

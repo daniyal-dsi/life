@@ -7,10 +7,13 @@ import { supabase } from './supabase';
 // row wins. Nothing is updated in place.
 
 export type Theme = 'light' | 'dark' | 'system';
-export type Settings = { name: string; theme: Theme };
+/** Which reminders to send (UK times). Matches supabase/functions/_shared/reminders.ts. */
+export type ReminderPrefs = { daily: boolean; p1: boolean; overdue: boolean; weekly: boolean; nudges: boolean };
+export type Settings = { name: string; theme: Theme; reminders: ReminderPrefs };
 export type SettingsRow = Row & { data: Settings };
 
-export const DEFAULT_SETTINGS: Settings = { name: '', theme: 'system' };
+export const DEFAULT_REMINDERS: ReminderPrefs = { daily: true, p1: true, overdue: true, weekly: true, nudges: true };
+export const DEFAULT_SETTINGS: Settings = { name: '', theme: 'system', reminders: DEFAULT_REMINDERS };
 
 const THEME_CACHE = 'lo:theme';
 
@@ -41,7 +44,11 @@ try {
 
 function normalise(data: Partial<Settings> | null | undefined): Settings {
   const theme = data?.theme === 'light' || data?.theme === 'dark' ? data.theme : 'system';
-  return { name: typeof data?.name === 'string' ? data.name : '', theme };
+  const r = (data?.reminders ?? {}) as Partial<ReminderPrefs>;
+  const reminders = Object.fromEntries(
+    (Object.keys(DEFAULT_REMINDERS) as (keyof ReminderPrefs)[]).map((k) => [k, typeof r[k] === 'boolean' ? r[k] : DEFAULT_REMINDERS[k]])
+  ) as ReminderPrefs;
+  return { name: typeof data?.name === 'string' ? data.name : '', theme, reminders };
 }
 
 export async function loadSettingsHistory(userId: string): Promise<SettingsRow[]> {

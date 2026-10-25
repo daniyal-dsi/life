@@ -34,7 +34,7 @@ npm run preview   # serve the build
 2. **Run the migrations, in order.** In the dashboard open **SQL Editor > New
    query**, paste the whole of each file in [`supabase/migrations/`](supabase/migrations)
    and click **Run**, one file at a time: `0001_foundations.sql`, then
-   `0002_liftlog.sql`, `0003_fuellog.sql`, `0004_workflow.sql`, and so on. Each file runs once; when a new step adds a
+   `0002_liftlog.sql`, `0003_fuellog.sql`, `0004_workflow.sql`, `0005_reminders.sql`, and so on. Each file runs once; when a new step adds a
    file, run just that one. (With the Supabase CLI you can instead run
    `supabase link` then `supabase db push`.)
 3. **Sign-in emails.** Under **Authentication > URL Configuration** set the
@@ -109,9 +109,8 @@ supabase/migrations/   SQL to run in Supabase
 
 ## Not built yet
 
-Web Push reminders (the `push_subscriptions` table is ready; this includes
-Workflow's due-date reminders), and the modules after Workflow: Meal Prep,
-Calendar, Faith and the full Home screen. See the build order in the brief.
+The modules after Workflow: Meal Prep, Calendar, Faith and the full Home
+screen. See the build order in the brief.
 
 ## Lift Log (step 2)
 
@@ -150,4 +149,51 @@ including anything you added to a sample project; buckets and you stay.
 - Project: milestones with owner and due date; tick to complete, drag the
   handle (or use the arrow keys) to reorder, tap to edit.
 - People are names only and can be reused across projects.
+
+## Reminders (phone notifications)
+
+Reminders are sent by a Supabase Edge Function, `send-reminders`, which a
+Supabase schedule runs every hour. Times are UK time:
+
+| When | Reminder |
+| --- | --- |
+| 08:00 | Milestones due today; P1 milestones due tomorrow |
+| 18:00 | Milestones that became overdue today |
+| Sunday 19:00 | Weekly summary |
+| Thursday 18:00 / daily 20:00 | Nudges: no workout yet this week / calories not logged today |
+
+Each person picks which ones they get in **More > Reminders**. Sample data
+never triggers reminders, and each reminder goes out at most once a day.
+
+### One-off setup
+
+1. **Database.** Run `supabase/migrations/0005_reminders.sql` in the SQL Editor.
+2. **Keys.** In Terminal, in this folder, run
+   `node scripts/generate-reminder-keys.mjs`. It prints the keys and says where
+   each one goes:
+   - Vercel environment variable `VITE_VAPID_PUBLIC_KEY` (then redeploy).
+   - Supabase **Edge Functions > Secrets**: `VAPID_PUBLIC_KEY`,
+     `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (`mailto:` plus your email) and
+     `CRON_SECRET`.
+3. **Deploy the function.** In Terminal: `npx supabase login` (opens your
+   browser once), then
+   `npx supabase functions deploy send-reminders --project-ref YOUR-PROJECT-REF --no-verify-jwt`.
+   (`--no-verify-jwt` because the schedule signs in with `CRON_SECRET` and the
+   app's "Send a test" checks your sign-in itself.)
+4. **Schedule.** Open `supabase/setup/schedule_reminders.sql`, replace the two
+   placeholders in the SQL Editor (not in the file), and run it.
+5. **Phone.** Open the app from the home-screen icon, go to **More >
+   Reminders**, tap **Turn on reminders**, allow notifications, then
+   **Send a test**. Natascha does the same on her phone.
+
+On iPhone, notifications need iOS 16.4 or later and only work in the app
+opened from the home screen.
+
+### Checking it
+
+In the SQL Editor: `select * from push_log order by sent_at desc limit 20;`
+shows what was sent, and `select * from cron.job_run_details order by
+start_time desc limit 5;` shows the hourly runs.
+
+The encryption and reminder rules have tests: `npm test`.
 
