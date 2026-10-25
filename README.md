@@ -34,7 +34,7 @@ npm run preview   # serve the build
 2. **Run the migrations, in order.** In the dashboard open **SQL Editor > New
    query**, paste the whole of each file in [`supabase/migrations/`](supabase/migrations)
    and click **Run**, one file at a time: `0001_foundations.sql`, then
-   `0002_liftlog.sql`, `0003_fuellog.sql`, and so on. Each file runs once; when a new step adds a
+   `0002_liftlog.sql`, `0003_fuellog.sql`, `0004_workflow.sql`, and so on. Each file runs once; when a new step adds a
    file, run just that one. (With the Supabase CLI you can instead run
    `supabase link` then `supabase db push`.)
 3. **Sign-in emails.** Under **Authentication > URL Configuration** set the
@@ -109,9 +109,9 @@ supabase/migrations/   SQL to run in Supabase
 
 ## Not built yet
 
-Web Push reminders (the `push_subscriptions` table is ready), and the modules
-after Fuel Log: Workflow, Meal Prep, Calendar, Faith and the full Home
-screen. See the build order in the brief.
+Web Push reminders (the `push_subscriptions` table is ready; this includes
+Workflow's due-date reminders), and the modules after Workflow: Meal Prep,
+Calendar, Faith and the full Home screen. See the build order in the brief.
 
 ## Lift Log (step 2)
 
@@ -135,4 +135,19 @@ removes the sample meals and weigh-ins.
 - Each logged food keeps a copy of its calories and macros, so editing a food
   in **My foods** doesn't change past days.
 - One weigh-in per day; logging the same day again replaces it.
+
+## Workflow (step 4)
+
+In the **Work** tab. The first time each person opens it, it adds the three
+buckets (MKA UK, Business, AI Side Hustles), a "you" person, and sample
+people, projects and milestones. **Clear sample work** removes the samples,
+including anything you added to a sample project; buckets and you stay.
+
+- Overview: active projects, P1 count, due this week, due today / overdue /
+  completed (tap to list them), one card per bucket, and **Needs attention**
+  (overdue, due in the next 3 days, and P1 work due within a week).
+- Bucket: projects filtered by All / P1 / In progress / Done.
+- Project: milestones with owner and due date; tick to complete, drag the
+  handle (or use the arrow keys) to reorder, tap to edit.
+- People are names only and can be reused across projects.
 
