@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { CalendarDays, Link2, Plus, ShoppingCart } from 'lucide-react';
-import { Button, Card, EmptyState, Notice, Segmented, SectionTitle } from '@/components/ui';
+import { Link2, Plus } from 'lucide-react';
+import { Button, Card, Notice, Segmented, SectionTitle } from '@/components/ui';
+import { todayISO } from '@/lib/date';
 import IngredientSheet from './IngredientSheet';
 import { mealFlags, mealMacros } from './macros';
 import MealEditor from './MealEditor';
+import { mondayOf } from './plan';
+import PlanView from './PlanView';
+import ShoppingView from './ShoppingView';
 import { MealPrepProvider, useMealPrep } from './store';
 import { AISLES, MEAL_TYPES, type Ingredient, type MealType } from './types';
 
@@ -32,7 +36,10 @@ function Screens() {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const raw = params.get('v');
-  const view: View = VIEWS.some((v) => v.id === raw) ? (raw as View) : 'meals';
+  const view: View = VIEWS.some((v) => v.id === raw) ? (raw as View) : 'plan';
+  const weekParam = params.get('week');
+  const monday = weekParam && /^\d{4}-\d{2}-\d{2}$/.test(weekParam) ? mondayOf(weekParam) : mondayOf(todayISO());
+  const setMonday = (m: string) => setParams({ m: 'meal', v: view, week: m }, { replace: true });
   const mealId = params.get('meal');
 
   if (loading) return <p className="py-10 text-center text-muted">Loading Meal Prep…</p>;
@@ -45,13 +52,9 @@ function Screens() {
 
   return (
     <>
-      <Segmented label="Meal Prep" options={VIEWS} value={view} onChange={(v) => setParams({ m: 'meal', v }, { replace: true })} />
-      {view === 'plan' && (
-        <EmptyState icon={CalendarDays} tone="sun" title="Week plan coming next" body="Plan breakfast, lunch and dinner for the week, with who's eating and batch cooking. Arrives in step 5b." />
-      )}
-      {view === 'shopping' && (
-        <EmptyState icon={ShoppingCart} tone="sun" title="Shopping list coming next" body="A shared list built from the week plan, grouped by aisle. Arrives in step 5b." />
-      )}
+      <Segmented label="Meal Prep" options={VIEWS} value={view} onChange={(v) => setParams({ m: 'meal', v, week: monday }, { replace: true })} />
+      {view === 'plan' && <PlanView monday={monday} setMonday={setMonday} openShopping={() => setParams({ m: 'meal', v: 'shopping', week: monday }, { replace: true })} />}
+      {view === 'shopping' && <ShoppingView monday={monday} setMonday={setMonday} />}
       {view === 'meals' && <MealsList />}
       {view === 'ingredients' && <IngredientsList />}
     </>

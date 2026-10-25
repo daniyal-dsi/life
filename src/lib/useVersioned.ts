@@ -28,6 +28,7 @@ export function useVersionedTables<K extends string>(
   const [versions, setVersions] = useState<VersionSets<K>>(empty);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloads, setReloads] = useState(0);
 
   useEffect(() => {
     if (!userId || (shared && !householdId)) return;
@@ -36,8 +37,10 @@ export function useVersionedTables<K extends string>(
       Object.fromEntries(
         await Promise.all(keys.map(async (k) => [k, await loadVersions<unknown>(tables[k], userId, householdId)] as const))
       ) as VersionSets<K>;
+    const first = reloads === 0;
     (async () => {
-      setLoading(true);
+      // A reload refreshes quietly; only the first load shows the loading state.
+      if (first) setLoading(true);
       setError(null);
       try {
         let v = await loadAll();
@@ -50,14 +53,17 @@ export function useVersionedTables<K extends string>(
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Could not load your data.');
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled && first) setLoading(false);
       }
     })();
     return () => {
       cancelled = true;
     };
     // Tables and options are module constants.
-  }, [userId, householdId]);
+  }, [userId, householdId, reloads]);
+
+  /** Fetches again, e.g. to pick up changes the other person made. */
+  const reload = useCallback(() => setReloads((n) => n + 1), []);
 
   const append = useCallback(
     async (key: K, rows: Version<unknown>[]) => {
@@ -70,7 +76,7 @@ export function useVersionedTables<K extends string>(
     [userId, householdId]
   );
 
-  return { userId, versions, loading, error, append };
+  return { userId, versions, loading, error, append, reload };
 }
 
 /** The stored data of a current entity, without its id and dates. */

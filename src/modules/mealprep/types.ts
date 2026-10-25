@@ -3,7 +3,12 @@ import type { Current } from '@/lib/versioned';
 // Meal Prep library. Shared by the household: both people see and edit the
 // same ingredients and meals.
 
-export const TABLES = { ingredients: 'mealprep_ingredients', meals: 'mealprep_meals' } as const;
+export const TABLES = {
+  ingredients: 'mealprep_ingredients',
+  meals: 'mealprep_meals',
+  plan: 'mealprep_plan',
+  shopping: 'mealprep_shopping'
+} as const;
 
 export type Aisle = 'meat' | 'veg' | 'dairy' | 'cupboard' | 'spice';
 export const AISLES: { id: Aisle; label: string }[] = [
@@ -59,3 +64,18 @@ export type MealData = { name: string; type: MealType; link: string | null; line
 
 export type Ingredient = Current<IngredientData>;
 export type Meal = Current<MealData>;
+
+/** One planned meal. One entity per date and slot (its id is derived from them). */
+export type PlanData = { date: string; slot: MealType; meal_id: string; eaters: string[] };
+
+/**
+ * Shopping list state for a week (keyed by its Monday). "item" rows hold the
+ * tick and any edited amount for an ingredient; "extra" rows are added items.
+ */
+export type ShopData =
+  | { week: string; kind: 'item'; ingredient_id: string; done: boolean; amount: string | null }
+  | { week: string; kind: 'extra'; name: string; done: boolean };
+
+export type PlanEntry = Current<PlanData>;
+export type ShopRow = Current<ShopData>;
+
