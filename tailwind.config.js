@@ -44,7 +44,15 @@ export default {
         gold: v('gold'),
         'gold-hi': v('gold-hi'),
         'gold-ink': v('gold-ink'),
-        niche: v('niche')
+        niche: v('niche'),
+        'mh-time': v('mh-time'),
+        btn: v('btn'),
+        'btn-text': v('btn-text'),
+        'tab-bg': v('tab-bg'),
+        'tab-fg': v('tab-fg'),
+        'tab-on': v('tab-on'),
+        'tab-on-fg': v('tab-on-fg'),
+        'tab-line': v('tab-line')
       },
       fontFamily: {
         display: ['"Bricolage Grotesque"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
