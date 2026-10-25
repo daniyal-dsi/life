@@ -9,11 +9,16 @@ export default defineConfig({
   // Server-only values (SUPABASE_SERVICE_ROLE_KEY, POSTGRES_*) never match these.
   envPrefix: ['VITE_', 'NEXT_PUBLIC_SUPABASE_'],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
+  build: {
+    rollupOptions: {
+      output: { manualChunks: (id) => (id.includes('@zxing') ? 'barcode' : undefined) }
+    }
+  },
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/apple-touch-icon.png', 'icons/icon.svg', 'push-sw.js'],
+      includeAssets: ['icons/apple-touch-icon.png', 'icons/icon.svg', 'push-sw.js', 'data/cofid-2021.json'],
       manifest: {
         name: 'Life Organiser',
         short_name: 'Life',
@@ -29,7 +34,14 @@ export default defineConfig({
         ]
       },
       // push-sw.js adds the push and notification-click handlers.
-      workbox: { navigateFallback: '/index.html', importScripts: ['push-sw.js'] }
+      workbox: {
+        navigateFallback: '/index.html',
+        importScripts: ['push-sw.js'],
+        // The barcode scanner is large and only loaded when scanning: keep it out
+        // of the install download and cache it the first time it's used.
+        globIgnores: ['**/barcode-*.js'],
+        runtimeCaching: [{ urlPattern: /\/assets\/barcode-.*\.js$/, handler: 'CacheFirst', options: { cacheName: 'barcode-scanner' } }]
+      }
     })
   ]
 });

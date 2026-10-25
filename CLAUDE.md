@@ -101,10 +101,20 @@ accepts "82,5".
 - Reminder choices live in settings (`settings.reminders`); `push_log`
   stops repeats. Add new reminder kinds in `reminders.ts` and its test.
 
+## Nutrition data (Meal Prep)
+- `src/modules/mealprep/nutrition/`: `cofid.ts` (loads and searches
+  `public/data/cofid-2021.json`), `usda.ts` (calls `api/usda.ts`), `off.ts`
+  (Open Food Facts by barcode), `NutritionFinder.tsx`, `BarcodeScanner.tsx`
+  (ZXing, lazy-loaded into its own `barcode-*` chunk and kept out of the PWA
+  precache). Keep the OGL attribution line in NutritionFinder.
+- `api/`: Vercel functions (Web `GET(request)` handlers); every file there
+  becomes an endpoint, so tests live in `test/`. They check the
+  caller's Supabase token before using any server-side key.
+
 ## Secrets
 Never put keys in the repo, in code, or in chat. Supabase values go into
 Vercel environment variables; the VAPID private key and CRON_SECRET live only
-in Supabase Edge Function secrets; the USDA key lives only in a server-side
+in Supabase Edge Function secrets; the USDA key (`USDA_API_KEY`) lives only in a server-side
 Vercel function; inbox tokens are never logged.
 
 ## Parked

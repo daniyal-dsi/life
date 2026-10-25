@@ -109,8 +109,7 @@ supabase/migrations/   SQL to run in Supabase
 
 ## Not built yet
 
-Meal Prep's nutrition databases (5d), then Calendar, Faith and the full Home
-screen. See
+Calendar, Faith and the full Home screen. See the build order in the brief. See
 the build order in the brief.
 
 ## Lift Log (step 2)
@@ -242,4 +241,32 @@ time anyone opens it, it imports the seven meals and their ingredients from
   **Eaten**. Manual logging still works.
 - A logged meal keeps the numbers it had when logged, so editing the recipe
   later doesn't change past days.
+
+## Meal Prep (step 5d: nutrition databases)
+
+When adding an ingredient (in a recipe or under Ingredients), or with **Find
+nutrition** on an ingredient:
+
+1. **CoFID** (UK, primary): McCance and Widdowson's Composition of Foods
+   Integrated Dataset 2021, shipped with the app as `public/data/cofid-2021.json`
+   (2,854 foods; name, group and kcal, protein, carbs and fat per 100 g) and
+   searched in the app. It's downloaded the first time you search and kept
+   for offline use. Contains public sector information licensed under the
+   Open Government Licence v3.0.
+2. **USDA FoodData Central** (backup): **Search USDA too** calls `api/usda.ts`,
+   a Vercel function that only answers signed-in users. Set it up once: get a
+   free key at https://fdc.nal.usda.gov/api-key-signup and add it in Vercel as
+   `USDA_API_KEY` (Production, Preview and Development), then redeploy. The key
+   never reaches the browser.
+3. **Open Food Facts** (branded products): **Scan barcode** uses the phone
+   camera (the ZXing library, loaded only when scanning), or type the number.
+4. **Manual**: type the numbers from the pack into the ingredient form.
+
+Imported "Type?" ingredients have **Pick from the food database**, which sets
+both a specific name and its nutrition.
+
+To rebuild `cofid-2021.json` from a new CoFID release, extract the "1.3
+Proximates" sheet's Food Code, Food Name, Group, Energy (kcal), Protein,
+Carbohydrate and Fat columns ("Tr" counts as 0; rows without energy are
+skipped).
 

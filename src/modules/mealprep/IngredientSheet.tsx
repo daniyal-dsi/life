@@ -3,6 +3,8 @@ import { BottomSheet, Button, Field, Notice, Switch, inputClass } from '@/compon
 import { oneDp, parseDecimal } from '@/lib/number';
 import { useMealPrep } from './store';
 import { AISLES, SIZED_UNITS, SOURCES, type Aisle, type Ingredient, type IngredientData, type Source, type Unit } from './types';
+import NutritionFinder from './nutrition/NutritionFinder';
+import { friendlyName, guessAisle, guessCooked, type FoodResult } from './nutrition/types';
 import { suggestionsFor, vagueMessage } from './vague';
 
 // Add or edit an ingredient. Vague names are blocked; an imported "Type?"
@@ -41,9 +43,25 @@ function toForm(i: Ingredient): Form {
   };
 }
 
+/** Form values from a database result (for a new ingredient, also name, aisle and cooked weight). */
+function fromResult(r: FoodResult, base: Form, isNew: boolean): Form {
+  const aisle = guessAisle(r);
+  return {
+    ...base,
+    ...(isNew ? { name: friendlyName(r.name), aisle, staple: aisle === 'spice', cooked: String(guessCooked(r, aisle)) } : {}),
+    kcal: String(r.nutrition.kcal),
+    p: String(r.nutrition.p),
+    c: String(r.nutrition.c),
+    f: String(r.nutrition.f),
+    source: r.source,
+    sourceName: r.detail ? `${r.name} (${r.detail})` : r.name
+  };
+}
+
 export default function IngredientSheet({
   ingredient,
   newName,
+  fromDatabase,
   open,
   onClose,
   onSaved
@@ -51,6 +69,8 @@ export default function IngredientSheet({
   ingredient?: Ingredient | null;
   /** Prefills the name when creating from a search. */
   newName?: string;
+  /** Prefills a new ingredient from a food database result. */
+  fromDatabase?: FoodResult | null;
   open: boolean;
   onClose: () => void;
   onSaved?: (id: string) => void;
@@ -59,13 +79,16 @@ export default function IngredientSheet({
   const [f, setF] = useState<Form>(empty());
   const [error, setError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState(false);
+  /** 'nutrition' fills the numbers; 'type' also sets a specific name (for "Type?"). */
+  const [finder, setFinder] = useState<'nutrition' | 'type' | null>(null);
 
   useEffect(() => {
     if (!open) return;
-    setF(ingredient ? toForm(ingredient) : empty(newName ?? ''));
+    const base = ingredient ? toForm(ingredient) : empty(newName ?? '');
+    setF(fromDatabase && !ingredient ? fromResult(fromDatabase, base, true) : base);
     setError(null);
     setConfirm(false);
-  }, [open, ingredient, newName]);
+  }, [open, ingredient, newName, fromDatabase]);
 
   const vague = vagueMessage(f.name);
   const picks = ingredient?.ask ? suggestionsFor(ingredient.name) : [];
@@ -139,6 +162,9 @@ export default function IngredientSheet({
                 ))}
               </span>
             )}
+            <button type="button" onClick={() => setFinder('type')} className="mt-2 block font-bold underline">
+              Pick from the food database
+            </button>
           </Notice>
         )}
         <Field label="Name" hint={vague ?? undefined}>
@@ -169,7 +195,12 @@ export default function IngredientSheet({
         </div>
 
         <div>
-          <p className="mb-1.5 text-[13px] font-semibold text-muted">Nutrition per 100 g cooked</p>
+          <div className="mb-1.5 flex items-center justify-between gap-2">
+            <p className="text-[13px] font-semibold text-muted">Nutrition per 100 g cooked</p>
+            <button type="button" onClick={() => setFinder('nutrition')} className="h-8 rounded-ctl border border-line bg-surface px-3 text-[13px] font-bold">
+              Find nutrition
+            </button>
+          </div>
           <div className="grid grid-cols-4 gap-2">
             {(['kcal', 'p', 'c', 'f'] as const).map((k) => (
               <Field key={k} label={{ kcal: 'kcal', p: 'Protein', c: 'Carbs', f: 'Fat' }[k]}>
@@ -217,6 +248,16 @@ export default function IngredientSheet({
         <Button variant="sun" onClick={() => void save()}>
           {ingredient ? 'Save ingredient' : 'Add ingredient'}
         </Button>
+        <NutritionFinder
+          open={finder !== null}
+          initialQuery={f.name}
+          onClose={() => setFinder(null)}
+          onPick={(r) => {
+            const next = fromResult(r, f, false);
+            setF(finder === 'type' ? { ...next, name: friendlyName(r.name) } : next);
+            setFinder(null);
+          }}
+        />
         {ingredient && (
           <Button variant="danger" onClick={() => void remove()}>
             {confirm ? 'Tap again to delete' : 'Delete ingredient'}
