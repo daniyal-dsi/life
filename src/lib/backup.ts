@@ -1,0 +1,61 @@
+import { addInboxItems, listInbox, type InboxItem } from './inbox';
+import { appendSettingsRows, loadSettingsHistory, type SettingsRow } from './settings';
+
+// JSON export/import of everything stored so far. Import only adds rows whose
+// id is new, so restoring a backup never overwrites anything already stored.
+// Each new module adds its tables here as it is built.
+
+const APP = 'life-organiser';
+const VERSION = 1;
+
+export type Backup = {
+  app: typeof APP;
+  version: number;
+  exported_at: string;
+  household: { name: string } | null;
+  settings: SettingsRow[];
+  inbox: InboxItem[];
+};
+
+export async function buildBackup(userId: string, household: { name: string } | null): Promise<Backup> {
+  const [settings, inbox] = await Promise.all([loadSettingsHistory(userId), listInbox(userId, 10000)]);
+  return {
+    app: APP,
+    version: VERSION,
+    exported_at: new Date().toISOString(),
+    household: household ? { name: household.name } : null,
+    settings,
+    inbox
+  };
+}
+
+export function downloadBackup(backup: Backup) {
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `life-organiser-${backup.exported_at.slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+const isRow = (r: unknown): r is { id: string; created_at: string } =>
+  !!r && typeof (r as { id?: unknown }).id === 'string' && typeof (r as { created_at?: unknown }).created_at === 'string';
+
+export async function importBackup(text: string, userId: string): Promise<{ settings: number; inbox: number }> {
+  let parsed: Partial<Backup>;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error('That file is not valid JSON.');
+  }
+  if (parsed.app !== APP) throw new Error('That file is not a Life Organiser export.');
+  const settings = (Array.isArray(parsed.settings) ? parsed.settings : []).filter(isRow) as SettingsRow[];
+  const inbox = (Array.isArray(parsed.inbox) ? parsed.inbox : [])
+    .filter(isRow)
+    .filter((i) => typeof (i as InboxItem).text === 'string') as InboxItem[];
+  return {
+    settings: await appendSettingsRows(userId, settings),
+    inbox: await addInboxItems(userId, inbox)
+  };
+}

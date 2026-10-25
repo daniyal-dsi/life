@@ -45,6 +45,28 @@
   --gold-hi: 232 201 121;
   --gold-ink: 138 106 30;
   --niche: 251 247 238;       /* #FBF7EE */
+  --mh-time: 10 58 50;        /* #0A3A32, big time inside the mihrab */
+  --btn: 18 17 23;            /* primary button */
+  --btn-text: 255 255 255;
+  --dw: 800;                  /* Bricolage weight: 800 light, 700 dark */
+  --tab-bg: 22 20 31;         /* tab dock */
+  --tab-fg: 217 214 227;
+  --tab-on: 255 255 255;      /* active tab tile */
+  --tab-on-fg: 22 20 31;
+  --tab-line: 22 20 31;
+  --hero-border: 18 17 23 / 1;
+  --shadow: 0 14px 40px rgb(22 20 31 / 0.2);
+  --glow-coral: none;
+  --glow-green: none;
+  --glow-sun: none;
+  --glow-violet: none;
+  /* Coloured module cards: solid colour in light, tinted in dark. */
+  --k-coral-bg: var(--coral);
+  --k-green-bg: var(--green);
+  --k-sun-bg: var(--sun);
+  --k-violet-bg: var(--violet);
+  --k-fg: 22 20 31;
+  --k-violet-fg: 255 255 255;
   color-scheme: light;
 }
 
@@ -81,8 +103,68 @@
   --gold-hi: 235 207 132;
   --gold-ink: 226 194 119;
   --niche: 21 32 29;
+  --coral: 255 138 110;       /* #FF8A6E */
+  --sun: 255 213 101;         /* #FFD565 */
+  --green: 74 222 155;        /* #4ADE9B */
+  --mh-time: 235 207 132;
+  --btn: 242 240 247;
+  --btn-text: 22 20 31;
+  --dw: 700;
+  --tab-bg: 26 24 34;
+  --tab-fg: 160 156 176;
+  --tab-on: 242 240 247;
+  --tab-on-fg: 22 20 31;
+  --tab-line: 42 39 52;
+  --hero-border: 108 92 231 / 0.4;
+  --shadow: 0 14px 40px rgb(0 0 0 / 0.55);
+  --glow-coral: 0 0 24px rgb(255 107 74 / 0.45);
+  --glow-green: 0 0 24px rgb(74 222 155 / 0.4);
+  --glow-sun: 0 0 24px rgb(255 200 61 / 0.35);
+  --glow-violet: 0 0 24px rgb(139 125 255 / 0.45);
+  --k-coral-bg: var(--coral-soft);
+  --k-green-bg: var(--green-soft);
+  --k-sun-bg: var(--sun-soft);
+  --k-violet-bg: var(--violet-soft);
+  --k-fg: 242 240 247;
+  --k-violet-fg: 242 240 247;
   color-scheme: dark;
 }
+
+/* Display type: Bricolage at the theme's weight. */
+.disp {
+  font-family: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+  font-weight: var(--dw);
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+}
+
+/* Coloured module cards (see ModuleCard in components/ui.tsx). */
+.kcard {
+  background: rgb(var(--kb));
+  color: rgb(var(--kf));
+  border: 1px solid rgb(var(--kl));
+}
+.kcard .knum {
+  color: rgb(var(--kn));
+  text-shadow: var(--kg);
+}
+.kcard .kicon {
+  background: rgb(var(--ki));
+}
+.kcard .ktrack {
+  background: rgb(var(--ktr));
+}
+.kcard .kbar {
+  background: rgb(var(--kbar));
+}
+.k-coral { --kb: var(--k-coral-bg); --kl: var(--k-coral-bg); --kf: var(--k-fg); --kn: var(--k-fg); --kbar: var(--k-fg); --ktr: var(--k-fg) / 0.16; --ki: 255 255 255 / 0.38; --kg: var(--glow-coral); }
+.k-green { --kb: var(--k-green-bg); --kl: var(--k-green-bg); --kf: var(--k-fg); --kn: var(--k-fg); --kbar: var(--k-fg); --ktr: var(--k-fg) / 0.16; --ki: 255 255 255 / 0.38; --kg: var(--glow-green); }
+.k-sun { --kb: var(--k-sun-bg); --kl: var(--k-sun-bg); --kf: var(--k-fg); --kn: var(--k-fg); --kbar: var(--k-fg); --ktr: var(--k-fg) / 0.16; --ki: 255 255 255 / 0.45; --kg: var(--glow-sun); }
+.k-violet { --kb: var(--k-violet-bg); --kl: var(--k-violet-bg); --kf: var(--k-violet-fg); --kn: var(--k-violet-fg); --kbar: var(--k-violet-fg); --ktr: 255 255 255 / 0.25; --ki: 255 255 255 / 0.2; --kg: var(--glow-violet); }
+.theme-dark .k-coral { --kl: var(--coral) / 0.3; --kn: var(--coral); --kbar: var(--coral); --ktr: var(--coral) / 0.2; --ki: var(--coral) / 0.25; }
+.theme-dark .k-green { --kl: var(--green) / 0.28; --kn: var(--green); --kbar: var(--green); --ktr: var(--green) / 0.2; --ki: var(--green) / 0.25; }
+.theme-dark .k-sun { --kl: var(--sun) / 0.28; --kn: var(--sun); --kbar: var(--sun); --ktr: var(--sun) / 0.2; --ki: var(--sun) / 0.25; }
+.theme-dark .k-violet { --kl: var(--violet-hi) / 0.3; --kn: var(--violet-hi); --kbar: var(--violet-hi); --ktr: var(--violet-hi) / 0.22; --ki: var(--violet) / 0.3; }
 
 html,
 body {
