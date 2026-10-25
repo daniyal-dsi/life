@@ -31,9 +31,11 @@ npm run preview   # serve the build
 ## Set up Supabase (once)
 
 1. Create a free project at [supabase.com](https://supabase.com).
-2. **Run the migration.** In the dashboard open **SQL Editor > New query**,
-   paste the whole of [`supabase/migrations/0001_foundations.sql`](supabase/migrations/0001_foundations.sql)
-   and click **Run**. (With the Supabase CLI you can instead run
+2. **Run the migrations, in order.** In the dashboard open **SQL Editor > New
+   query**, paste the whole of each file in [`supabase/migrations/`](supabase/migrations)
+   and click **Run**, one file at a time: `0001_foundations.sql`, then
+   `0002_liftlog.sql`, and so on. Each file runs once; when a new step adds a
+   file, run just that one. (With the Supabase CLI you can instead run
    `supabase link` then `supabase db push`.)
 3. **Sign-in emails.** Under **Authentication > URL Configuration** set the
    **Site URL** to your Vercel address (e.g. `https://life-organiser.vercel.app`)
@@ -85,6 +87,10 @@ Supabase values go **only** into Vercel environment variables (and your own
 - Records are dated and kept, never overwritten. Tables only allow reading and
   adding rows; a change (such as a new theme) adds a new row and the newest
   wins. Leaving a household stamps `left_at` rather than deleting anything.
+- Things you can edit or delete (workouts, templates, exercises) are
+  **versioned**: each save adds a new version with the same `entity_id`, and a
+  delete adds a version marked `deleted`. The `*_current` views in Supabase
+  show the latest state; `liftlog_sets` lists every logged set for analysis.
 - **More > Your data** exports everything as JSON. Importing only adds records
   whose id isn't already stored, so it never overwrites.
 
@@ -94,7 +100,8 @@ Supabase values go **only** into Vercel environment variables (and your own
 src/
   areas/        one *.area.tsx file per tab; new areas are picked up automatically
   components/   ui.tsx (shared components), TabBar.tsx, MihrabFrame.tsx
-  lib/          supabase, auth, settings, household, inbox, backup, date
+  lib/          supabase, auth, settings, household, inbox, backup, date, versioned
+  modules/      one folder per module (liftlog/ ...): data, logic and screens
   screens/      one screen per area, plus SignIn and HouseholdSetup
   styles.css    design tokens (light in :root, dark in .theme-dark)
 supabase/migrations/   SQL to run in Supabase
@@ -102,6 +109,13 @@ supabase/migrations/   SQL to run in Supabase
 
 ## Not built yet
 
-Web Push reminders (the `push_subscriptions` table is ready), and every module
-after step 1: Lift Log, Fuel Log, Workflow, Meal Prep, Calendar, Faith and the
-full Home screen. See the build order in the brief.
+Web Push reminders (the `push_subscriptions` table is ready), and the modules
+after Lift Log: Fuel Log, Workflow, Meal Prep, Calendar, Faith and the full
+Home screen. See the build order in the brief.
+
+## Lift Log (step 2)
+
+In **Health > Lift Log**. The first time each person opens it, it adds a
+starter library of 15 exercises, Push/Pull/Legs templates, and three weeks of
+sample workouts (with two PRs) so the charts have something to show. Tap
+**Clear sample workouts** to remove the samples; they don't come back.

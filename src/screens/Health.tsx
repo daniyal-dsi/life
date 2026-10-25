@@ -1,9 +1,10 @@
-import { Apple, CookingPot, Dumbbell } from 'lucide-react';
+import { Apple, CookingPot } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { EmptyState, Header, Page, StatTile, UnderlineTabs, type TabItem } from '@/components/ui';
 import { formatLong } from '@/lib/date';
+import LiftLog from '@/modules/liftlog/LiftLog';
 
-// Step 1 placeholders for the three Health modules (steps 2, 3 and 5).
+// Health: Lift Log (step 2), with Fuel Log (step 3) and Meal Prep (step 5) still placeholders.
 
 type Module = 'lift' | 'fuel' | 'meal';
 
@@ -26,20 +27,7 @@ export default function HealthScreen() {
         <UnderlineTabs tabs={TABS} value={tab} onChange={(m) => setParams({ m }, { replace: true })} />
       </div>
 
-      {tab === 'lift' && (
-        <>
-          <div className="grid grid-cols-2 gap-2.5">
-            <StatTile label="Streak" value="0" unit="weeks" tone="coral" />
-            <StatTile label="This week" value="0" unit="kg" tone="coral" />
-          </div>
-          <EmptyState
-            icon={Dumbbell}
-            tone="coral"
-            title="No workouts yet"
-            body="Log workouts, track personal records and keep your streak. Lift Log arrives in step 2."
-          />
-        </>
-      )}
+      {tab === 'lift' && <LiftLog />}
       {tab === 'fuel' && (
         <>
           <div className="grid grid-cols-2 gap-2.5">

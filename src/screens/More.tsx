@@ -200,7 +200,7 @@ function DataCard() {
     try {
       const added = await importBackup(await file.text(), user.id);
       await reload();
-      const total = added.settings + added.inbox;
+      const total = added.settings + added.inbox + added.records;
       setMessage({
         tone: 'green',
         text: total ? `Imported ${total} new record${total === 1 ? '' : 's'}.` : 'Nothing new to import.'

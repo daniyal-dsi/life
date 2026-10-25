@@ -1,9 +1,13 @@
 import { addInboxItems, listInbox, type InboxItem } from './inbox';
 import { appendSettingsRows, loadSettingsHistory, type SettingsRow } from './settings';
+import { appendVersions, loadVersions, type Version } from './versioned';
 
 // JSON export/import of everything stored so far. Import only adds rows whose
 // id is new, so restoring a backup never overwrites anything already stored.
-// Each new module adds its tables here as it is built.
+// Each new module adds its versioned tables to VERSIONED_TABLES as it is built.
+
+/** Module tables that use the versioned-records layout (see versioned.ts). */
+const VERSIONED_TABLES = ['liftlog_exercises', 'liftlog_templates', 'liftlog_workouts'] as const;
 
 const APP = 'life-organiser';
 const VERSION = 1;
@@ -15,17 +19,24 @@ export type Backup = {
   household: { name: string } | null;
   settings: SettingsRow[];
   inbox: InboxItem[];
+  /** Every version of every versioned table, keyed by table name. */
+  tables?: Record<string, Version<unknown>[]>;
 };
 
 export async function buildBackup(userId: string, household: { name: string } | null): Promise<Backup> {
-  const [settings, inbox] = await Promise.all([loadSettingsHistory(userId), listInbox(userId, 10000)]);
+  const [settings, inbox, ...versioned] = await Promise.all([
+    loadSettingsHistory(userId),
+    listInbox(userId, 10000),
+    ...VERSIONED_TABLES.map((t) => loadVersions<unknown>(t, userId))
+  ]);
   return {
     app: APP,
     version: VERSION,
     exported_at: new Date().toISOString(),
     household: household ? { name: household.name } : null,
     settings,
-    inbox
+    inbox,
+    tables: Object.fromEntries(VERSIONED_TABLES.map((t, i) => [t, versioned[i]]))
   };
 }
 
@@ -42,7 +53,10 @@ export function downloadBackup(backup: Backup) {
 const isRow = (r: unknown): r is { id: string; created_at: string } =>
   !!r && typeof (r as { id?: unknown }).id === 'string' && typeof (r as { created_at?: unknown }).created_at === 'string';
 
-export async function importBackup(text: string, userId: string): Promise<{ settings: number; inbox: number }> {
+export async function importBackup(
+  text: string,
+  userId: string
+): Promise<{ settings: number; inbox: number; records: number }> {
   let parsed: Partial<Backup>;
   try {
     parsed = JSON.parse(text);
@@ -54,8 +68,22 @@ export async function importBackup(text: string, userId: string): Promise<{ sett
   const inbox = (Array.isArray(parsed.inbox) ? parsed.inbox : [])
     .filter(isRow)
     .filter((i) => typeof (i as InboxItem).text === 'string') as InboxItem[];
+  let records = 0;
+  for (const table of VERSIONED_TABLES) {
+    const rows = parsed.tables?.[table];
+    if (!Array.isArray(rows)) continue;
+    const valid = rows.filter(
+      (r): r is Version<unknown> =>
+        isRow(r) &&
+        typeof (r as Version<unknown>).entity_id === 'string' &&
+        !!(r as Version<unknown>).data &&
+        typeof (r as Version<unknown>).data === 'object'
+    );
+    records += await appendVersions(table, userId, valid);
+  }
   return {
     settings: await appendSettingsRows(userId, settings),
-    inbox: await addInboxItems(userId, inbox)
+    inbox: await addInboxItems(userId, inbox),
+    records
   };
 }

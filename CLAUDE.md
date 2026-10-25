@@ -31,9 +31,24 @@ Hosted on Vercel. Path alias `@` -> `src`.
 - `src/lib/`: `supabase.ts` (client or null in demo mode), `auth.tsx`
   (magic link + 6-digit code), `settings.ts` (append-only settings, theme),
   `household.tsx`, `inbox.ts`, `backup.ts` (export/import; add each new
-  module's tables here), `local.ts` (demo-mode append-only storage), `date.ts`.
+  module's versioned tables to `VERSIONED_TABLES`), `local.ts` (demo-mode
+  append-only storage), `date.ts`, `versioned.ts` (see below).
+- `src/modules/<module>/`: each module owns its data and screens: `types.ts`,
+  `store.tsx` (provider + hook), pure logic such as `stats.ts`, `seed.ts`,
+  sheets and the main screen. Lift Log is the pattern to copy.
+- `src/components/charts.tsx`: LineChart (hover readout + table view) and
+  Donut (legend with shares). Chart colours are validated tokens (`--g-*` for
+  muscle groups); run the dataviz validator before adding a new palette.
 - `supabase/migrations/`: numbered SQL files, run in order in the Supabase SQL
-  editor. Add a new file per step; never edit one that has been run.
+  editor. Add a new file per step; never edit one that has been run. Remind
+  Daniyal to run each new file; the app can't do it.
+
+## Editable data: versioned records
+Anything a person can edit or delete uses `src/lib/versioned.ts`. Tables have
+`id, entity_id, user_id, data jsonb, deleted, created_at`; a save appends a
+version, a delete appends one with `deleted = true`, and `currentOf()` folds
+them (newest wins). Starter data uses `stableId()` so seeding is idempotent.
+Add `*_current` views with `security_invoker = true` for analysis.
 
 ## Tokens
 - Colours are space-separated RGB in CSS variables, so Tailwind opacity works
