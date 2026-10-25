@@ -49,14 +49,22 @@ npm run preview   # serve the build
 ## Deploy to Vercel
 
 1. Import this GitHub repo in Vercel (framework preset: Vite).
-2. Under **Project Settings > Environment Variables** add, for Production,
-   Preview and Development:
+2. Give the app the Supabase URL and public key, in either of two ways:
+   - **Supabase integration (easiest):** connect the Vercel project to the
+     Supabase project (Vercel **Integrations**, or Supabase **Project Settings >
+     Integrations**). It adds `NEXT_PUBLIC_SUPABASE_URL` and
+     `NEXT_PUBLIC_SUPABASE_ANON_KEY`, which the app reads as they are.
+   - **By hand:** under **Project Settings > Environment Variables** add, for
+     Production, Preview and Development:
 
-   | Name | Value |
-   | --- | --- |
-   | `VITE_SUPABASE_URL` | your Project URL |
-   | `VITE_SUPABASE_ANON_KEY` | your anon public key |
+     | Name | Value |
+     | --- | --- |
+     | `VITE_SUPABASE_URL` | your Project URL |
+     | `VITE_SUPABASE_ANON_KEY` | your anon public key |
 
+   If both are set, the `VITE_` values win. Never rename the integration's
+   server-only variables (`SUPABASE_SERVICE_ROLE_KEY`, `POSTGRES_*`) to start
+   with `VITE_` or `NEXT_PUBLIC_`: that would put them in the app for anyone to read.
 3. Redeploy. `vercel.json` already sends every route to the app.
 
 Supabase values go **only** into Vercel environment variables (and your own

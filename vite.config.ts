@@ -4,6 +4,10 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
+  // VITE_* is our own naming. NEXT_PUBLIC_SUPABASE_* is what the Vercel-Supabase
+  // integration creates; those are the public URL and key, safe for the browser.
+  // Server-only values (SUPABASE_SERVICE_ROLE_KEY, POSTGRES_*) never match these.
+  envPrefix: ['VITE_', 'NEXT_PUBLIC_SUPABASE_'],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   plugins: [
     react(),

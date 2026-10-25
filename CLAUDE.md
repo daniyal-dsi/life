@@ -58,7 +58,10 @@ Hosted on Vercel. Path alias `@` -> `src`.
   Tables get SELECT and INSERT policies only; a change is a new row and the
   newest wins. Import adds rows by id and skips ids already stored.
 - Weeks run Monday to Sunday. Times are UK time.
-- If `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` are missing, run in demo
+- Supabase URL/key come from `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`,
+  falling back to the Vercel integration's `NEXT_PUBLIC_SUPABASE_URL` /
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY` (`envPrefix` in `vite.config.ts`). Never widen
+  that prefix list. If both are missing, run in demo
   mode on local data with a "Not connected" banner.
 
 ## Secrets
