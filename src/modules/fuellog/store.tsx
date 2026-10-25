@@ -39,7 +39,7 @@ const Ctx = createContext<FuelLogState | null>(null);
 type Key = keyof typeof TABLES;
 const OPTIONS = {
   needsSeed: (v: Record<Key, Version<unknown>[]>) => v.profile.length === 0,
-  seed: buildSeed
+  seed: (uid: string) => buildSeed(uid)
 };
 
 export function FuelLogProvider({ children }: { children: ReactNode }) {

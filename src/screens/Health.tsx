@@ -1,11 +1,11 @@
-import { CookingPot } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import { EmptyState, Header, Page, StatTile, UnderlineTabs, type TabItem } from '@/components/ui';
+import { Header, Page, UnderlineTabs, type TabItem } from '@/components/ui';
 import { formatLong } from '@/lib/date';
 import FuelLog from '@/modules/fuellog/FuelLog';
 import LiftLog from '@/modules/liftlog/LiftLog';
+import MealPrep from '@/modules/mealprep/MealPrep';
 
-// Health: Lift Log (step 2) and Fuel Log (step 3); Meal Prep (step 5) is still a placeholder.
+// Health: Lift Log (step 2), Fuel Log (step 3) and Meal Prep (step 5).
 
 type Module = 'lift' | 'fuel' | 'meal';
 
@@ -30,20 +30,7 @@ export default function HealthScreen() {
 
       {tab === 'lift' && <LiftLog />}
       {tab === 'fuel' && <FuelLog />}
-      {tab === 'meal' && (
-        <>
-          <div className="grid grid-cols-2 gap-2.5">
-            <StatTile label="Planned" value="0" unit="of 21" tone="sun" />
-            <StatTile label="To buy" value="0" unit="items" tone="sun" />
-          </div>
-          <EmptyState
-            icon={CookingPot}
-            tone="sun"
-            title="No meals planned"
-            body="Plan the week together and get one shared shopping list. Meal Prep arrives in step 5."
-          />
-        </>
-      )}
+      {tab === 'meal' && <MealPrep />}
     </Page>
   );
 }

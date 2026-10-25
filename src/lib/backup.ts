@@ -21,6 +21,9 @@ const VERSIONED_TABLES = [
   'workflow_people'
 ] as const;
 
+/** Versioned tables shared by the household (exported for, and imported into, your current household). */
+const SHARED_TABLES = ['mealprep_ingredients', 'mealprep_meals'] as const;
+
 const APP = 'life-organiser';
 const VERSION = 1;
 
@@ -35,11 +38,12 @@ export type Backup = {
   tables?: Record<string, Version<unknown>[]>;
 };
 
-export async function buildBackup(userId: string, household: { name: string } | null): Promise<Backup> {
+export async function buildBackup(userId: string, household: { id: string; name: string } | null): Promise<Backup> {
   const [settings, inbox, ...versioned] = await Promise.all([
     loadSettingsHistory(userId),
     listInbox(userId, 10000),
-    ...VERSIONED_TABLES.map((t) => loadVersions<unknown>(t, userId))
+    ...VERSIONED_TABLES.map((t) => loadVersions<unknown>(t, userId)),
+    ...SHARED_TABLES.map((t) => (household ? loadVersions<unknown>(t, userId, household.id) : Promise.resolve([])))
   ]);
   return {
     app: APP,
@@ -48,7 +52,7 @@ export async function buildBackup(userId: string, household: { name: string } | 
     household: household ? { name: household.name } : null,
     settings,
     inbox,
-    tables: Object.fromEntries(VERSIONED_TABLES.map((t, i) => [t, versioned[i]]))
+    tables: Object.fromEntries([...VERSIONED_TABLES, ...SHARED_TABLES].map((t, i) => [t, versioned[i]]))
   };
 }
 
@@ -67,7 +71,8 @@ const isRow = (r: unknown): r is { id: string; created_at: string } =>
 
 export async function importBackup(
   text: string,
-  userId: string
+  userId: string,
+  householdId: string | null
 ): Promise<{ settings: number; inbox: number; records: number }> {
   let parsed: Partial<Backup>;
   try {
@@ -81,7 +86,9 @@ export async function importBackup(
     .filter(isRow)
     .filter((i) => typeof (i as InboxItem).text === 'string') as InboxItem[];
   let records = 0;
-  for (const table of VERSIONED_TABLES) {
+  for (const table of [...VERSIONED_TABLES, ...SHARED_TABLES]) {
+    const shared = (SHARED_TABLES as readonly string[]).includes(table);
+    if (shared && !householdId) continue;
     const rows = parsed.tables?.[table];
     if (!Array.isArray(rows)) continue;
     const valid = rows.filter(
@@ -91,7 +98,7 @@ export async function importBackup(
         !!(r as Version<unknown>).data &&
         typeof (r as Version<unknown>).data === 'object'
     );
-    records += await appendVersions(table, userId, valid);
+    records += await appendVersions(table, userId, valid, shared ? householdId! : undefined);
   }
   return {
     settings: await appendSettingsRows(userId, settings),

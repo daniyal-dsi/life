@@ -198,7 +198,7 @@ function DataCard() {
   async function onImport(file: File) {
     if (!user) return;
     try {
-      const added = await importBackup(await file.text(), user.id);
+      const added = await importBackup(await file.text(), user.id, household?.id ?? null);
       await reload();
       const total = added.settings + added.inbox + added.records;
       setMessage({
