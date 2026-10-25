@@ -49,6 +49,11 @@ Anything a person can edit or delete uses `src/lib/versioned.ts`. Tables have
 version, a delete appends one with `deleted = true`, and `currentOf()` folds
 them (newest wins). Starter data uses `stableId()` so seeding is idempotent.
 Add `*_current` views with `security_invoker = true` for analysis.
+A module store wraps `useVersionedTables()` (`src/lib/useVersioned.ts`), which
+loads the tables, seeds on first use and appends versions; see the Lift Log
+and Fuel Log stores. `dataOf()` strips ids before writing a new version.
+Parse typed numbers with `parseDecimal()` (`src/lib/number.ts`), which
+accepts "82,5".
 
 ## Tokens
 - Colours are space-separated RGB in CSS variables, so Tailwind opacity works

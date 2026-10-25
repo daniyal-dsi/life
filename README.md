@@ -34,7 +34,7 @@ npm run preview   # serve the build
 2. **Run the migrations, in order.** In the dashboard open **SQL Editor > New
    query**, paste the whole of each file in [`supabase/migrations/`](supabase/migrations)
    and click **Run**, one file at a time: `0001_foundations.sql`, then
-   `0002_liftlog.sql`, and so on. Each file runs once; when a new step adds a
+   `0002_liftlog.sql`, `0003_fuellog.sql`, and so on. Each file runs once; when a new step adds a
    file, run just that one. (With the Supabase CLI you can instead run
    `supabase link` then `supabase db push`.)
 3. **Sign-in emails.** Under **Authentication > URL Configuration** set the
@@ -110,8 +110,8 @@ supabase/migrations/   SQL to run in Supabase
 ## Not built yet
 
 Web Push reminders (the `push_subscriptions` table is ready), and the modules
-after Lift Log: Fuel Log, Workflow, Meal Prep, Calendar, Faith and the full
-Home screen. See the build order in the brief.
+after Fuel Log: Workflow, Meal Prep, Calendar, Faith and the full Home
+screen. See the build order in the brief.
 
 ## Lift Log (step 2)
 
@@ -119,3 +119,20 @@ In **Health > Lift Log**. The first time each person opens it, it adds a
 starter library of 15 exercises, Push/Pull/Legs templates, and three weeks of
 sample workouts (with two PRs) so the charts have something to show. Tap
 **Clear sample workouts** to remove the samples; they don't come back.
+
+## Fuel Log (step 3)
+
+In **Health > Fuel Log**. The first time each person opens it, it adds a
+sample profile, a food library, one fully logged day (today) and a few weeks
+of weigh-ins. Set your own details under **Profile**; **Clear sample data**
+removes the sample meals and weigh-ins.
+
+- Daily target: Mifflin-St Jeor resting rate × activity level, minus 15% to
+  lose or plus 10% to gain. Protein 2 g per kg, fat 25% of calories, carbs
+  the rest.
+- Changing your profile saves a new version from that day on, so past days
+  are still scored against the target they had.
+- Each logged food keeps a copy of its calories and macros, so editing a food
+  in **My foods** doesn't change past days.
+- One weigh-in per day; logging the same day again replaces it.
+
