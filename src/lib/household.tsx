@@ -52,7 +52,8 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
+  /** `quiet` refreshes in the background without the loading screen. */
+  const refresh = useCallback(async (quiet = false) => {
     setError(null);
     if (!userId) {
       setHousehold(null);
@@ -67,7 +68,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return;
     }
-    setLoading(true);
+    if (!quiet) setLoading(true);
     try {
       const { data, error: memberErr } = await supabase
         .from('household_members')
@@ -95,6 +96,13 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void refresh();
+  }, [refresh]);
+
+  // A home-screen app can stay open for days: pick up members who joined since.
+  useEffect(() => {
+    const onVisible = () => document.visibilityState === 'visible' && void refresh(true);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, [refresh]);
 
   const create = useCallback(
