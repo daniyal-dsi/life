@@ -37,13 +37,18 @@ type FuelLogState = {
 
 const Ctx = createContext<FuelLogState | null>(null);
 type Key = keyof typeof TABLES;
-const OPTIONS = {
+const SEEDING = {
   needsSeed: (v: Record<Key, Version<unknown>[]>) => v.profile.length === 0,
   seed: (uid: string) => buildSeed(uid)
 };
+const NO_SEEDING = { needsSeed: () => false, seed: async () => ({}) };
 
-export function FuelLogProvider({ children }: { children: ReactNode }) {
-  const { userId, versions, loading, error, append } = useVersionedTables(TABLES, OPTIONS);
+/**
+ * `seed={false}` when used from another module (Meal Prep), so opening that
+ * module doesn't add Fuel Log's sample data for someone who hasn't used it.
+ */
+export function FuelLogProvider({ children, seed = true }: { children: ReactNode; seed?: boolean }) {
+  const { userId, versions, loading, error, append } = useVersionedTables(TABLES, seed ? SEEDING : NO_SEEDING);
   const profileVersions = versions.profile as Version<ProfileData>[];
 
   const profile = useMemo(() => currentOf(profileVersions)[0] ?? null, [profileVersions]);

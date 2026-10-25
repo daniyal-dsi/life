@@ -109,8 +109,8 @@ supabase/migrations/   SQL to run in Supabase
 
 ## Not built yet
 
-The rest of Meal Prep (5c Fuel Log link, 5d nutrition databases), then
-Calendar, Faith and the full Home screen. See
+Meal Prep's nutrition databases (5d), then Calendar, Faith and the full Home
+screen. See
 the build order in the brief.
 
 ## Lift Log (step 2)
@@ -231,4 +231,15 @@ time anyone opens it, it imports the seven meals and their ingredients from
   (the calculated amount stays visible); tick items off (both phones see the
   ticks after returning to the app); add other items; staples sit in their
   own section; **Share list** sends what's left as plain text.
+
+## Meal Prep (step 5c: Fuel Log link)
+
+- Every Meal Prep meal appears in each person's Fuel Log as a food (one
+  portion, marked "Meal Prep"), worked out live from the current recipe.
+- Planned meals show in Fuel Log under their mealtime, and on the plan, with
+  **I ate this** for the people eating them. It opens a servings stepper and
+  logs only to the signed-in person's Fuel Log; the plan then shows
+  **Eaten**. Manual logging still works.
+- A logged meal keeps the numbers it had when logged, so editing the recipe
+  later doesn't change past days.
 

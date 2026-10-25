@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import { BottomSheet, Button, Notice, inputClass } from '@/components/ui';
 import { oneDp, parseDecimal } from '@/lib/number';
+import { useMealFoods } from '@/modules/mealprep/mealFoods';
 import { useFuelLog } from './store';
 import { MEALS, type Entry, type Meal } from './types';
 
@@ -23,6 +24,7 @@ export default function FoodSheet({
   onManageFoods: () => void;
 }) {
   const { foods, saveEntry, deleteEntry } = useFuelLog();
+  const mealFoods = useMealFoods();
   const [meal, setMeal] = useState<Meal>('breakfast');
   const [q, setQ] = useState('');
   const [foodId, setFoodId] = useState<string | null>(null);
@@ -40,10 +42,13 @@ export default function FoodSheet({
   }, [draft]);
 
   const editing = draft?.entry;
-  const food = foods.find((f) => f.id === foodId);
+  const mealFood = mealFoods.find((m) => m.id === foodId);
+  const food = foods.find((f) => f.id === foodId) ?? mealFood;
   const sv = parseDecimal(servings);
   const perServing = editing && !food ? editing : food;
-  const list = foods.filter((f) => !q.trim() || f.name.toLowerCase().includes(q.trim().toLowerCase()));
+  const matches = (name: string) => !q.trim() || name.toLowerCase().includes(q.trim().toLowerCase());
+  const list = foods.filter((f) => matches(f.name));
+  const mealList = mealFoods.filter((m) => matches(m.name));
 
   const step = (d: number) =>
     setServings((cur) => {
@@ -69,7 +74,9 @@ export default function FoodSheet({
           kcal: src.kcal,
           p: src.p,
           c: src.c,
-          f: src.f
+          f: src.f,
+          // Meals log a snapshot of the recipe as it is now.
+          ...(mealFood || editing?.meal_id ? { meal_id: mealFood?.id ?? editing?.meal_id ?? null } : {})
         },
         editing?.id
       );
@@ -125,7 +132,29 @@ export default function FoodSheet({
               className={inputClass}
             />
             <div className="flex max-h-[38dvh] flex-col gap-2 overflow-y-auto">
-              {list.length === 0 && <p className="text-[13px] text-muted">No foods match. Add it to My foods first.</p>}
+              {list.length === 0 && mealList.length === 0 && <p className="text-[13px] text-muted">No foods match. Add it to My foods first.</p>}
+              {mealList.length > 0 && <p className="mt-1 text-[12px] font-bold text-muted">Meal Prep meals (one portion)</p>}
+              {mealList.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  aria-pressed={foodId === m.id}
+                  onClick={() => setFoodId(m.id)}
+                  className={`flex w-full items-center justify-between gap-2.5 rounded-btn border px-3.5 py-3 text-left ${
+                    foodId === m.id ? 'border-green bg-green-soft' : 'border-line bg-bg'
+                  }`}
+                >
+                  <span className="min-w-0">
+                    <span className="flex items-center gap-1.5 font-bold">
+                      {m.name}
+                      <span className="rounded-[6px] bg-sun-soft px-1.5 text-[11px] font-extrabold text-sun-ink">Meal Prep</span>
+                    </span>
+                    <span className="text-[13px] text-muted">{macroLine(m.p, m.c, m.f)}</span>
+                  </span>
+                  <span className="tnum whitespace-nowrap font-bold">{num(m.kcal)} kcal</span>
+                </button>
+              ))}
+              {mealList.length > 0 && list.length > 0 && <p className="mt-1 text-[12px] font-bold text-muted">My foods</p>}
               {list.map((f) => (
                 <button
                   key={f.id}
