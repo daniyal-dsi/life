@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { loadCofid, searchFoods } from './nutrition/cofid';
+import type { FoodResult } from './nutrition/types';
 import { Plus } from 'lucide-react';
 import { BottomSheet, inputClass } from '@/components/ui';
 import { useMealPrep } from './store';
@@ -13,24 +15,31 @@ export default function IngredientPicker({
   exclude,
   onClose,
   onPick,
-  onCreate
+  onCreate,
+  onCreateFrom
 }: {
   open: boolean;
   exclude: Set<string>;
   onClose: () => void;
   onPick: (i: Ingredient) => void;
   onCreate: (name: string) => void;
+  /** New ingredient from a food database result. */
+  onCreateFrom: (r: FoodResult) => void;
 }) {
   const { ingredients } = useMealPrep();
   const [q, setQ] = useState('');
+  const [cofid, setCofid] = useState<FoodResult[] | null>(null);
   useEffect(() => {
-    if (open) setQ('');
+    if (!open) return;
+    setQ('');
+    loadCofid().then(setCofid, () => setCofid([]));
   }, [open]);
 
   const term = q.trim().toLowerCase();
   const list = ingredients.filter((i) => !exclude.has(i.id) && (!term || i.name.toLowerCase().includes(term)));
   const exact = ingredients.some((i) => i.name.toLowerCase() === term);
   const vague = term ? vagueMessage(q) : null;
+  const dbResults = cofid && term.length > 1 ? searchFoods(cofid, term, 8) : [];
 
   return (
     <BottomSheet open={open} onClose={onClose} title="Add an ingredient">
@@ -59,6 +68,18 @@ export default function IngredientPicker({
             </button>
           ))}
           {list.length === 0 && !term && <p className="text-[13px] text-muted">No ingredients yet.</p>}
+          {dbResults.length > 0 && <p className="mt-1 text-[12px] font-bold text-muted">From the UK food database (CoFID), per 100 g</p>}
+          {dbResults.map((r) => (
+            <button key={r.ref} type="button" onClick={() => onCreateFrom(r)} className="flex items-center justify-between gap-2 rounded-btn border border-dashed border-line2 px-3.5 py-3 text-left">
+              <span className="min-w-0">
+                <span className="block font-semibold leading-snug">{r.name}</span>
+                <span className="text-[12px] text-muted">
+                  P {r.nutrition.p} · C {r.nutrition.c} · F {r.nutrition.f}
+                </span>
+              </span>
+              <span className="tnum whitespace-nowrap text-[14px] font-bold">{r.nutrition.kcal} kcal</span>
+            </button>
+          ))}
         </div>
       </div>
     </BottomSheet>

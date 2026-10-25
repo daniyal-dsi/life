@@ -5,6 +5,7 @@ import { Button, Card, Field, Notice, Segmented, SectionTitle, inputClass } from
 import { oneDp, parseDecimal } from '@/lib/number';
 import IngredientPicker from './IngredientPicker';
 import IngredientSheet from './IngredientSheet';
+import type { FoodResult } from './nutrition/types';
 import { mealMacros, normaliseLink, siteName } from './macros';
 import { useMealPrep } from './store';
 import { MEAL_TYPES, UNITS, type Ingredient, type Meal, type MealType, type Unit } from './types';
@@ -30,6 +31,7 @@ export default function MealEditor({ meal, onDone }: { meal: Meal | null; onDone
   const [picker, setPicker] = useState(false);
   const [editIng, setEditIng] = useState<Ingredient | null>(null);
   const [newIng, setNewIng] = useState<string | null>(null);
+  const [fromDb, setFromDb] = useState<FoodResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [confirm, setConfirm] = useState(false);
@@ -200,12 +202,20 @@ export default function MealEditor({ meal, onDone }: { meal: Meal | null; onDone
           setPicker(false);
           setNewIng(n);
         }}
+        onCreateFrom={(r) => {
+          setPicker(false);
+          setFromDb(r);
+        }}
       />
       <IngredientSheet ingredient={editIng} open={!!editIng} onClose={() => setEditIng(null)} />
       <IngredientSheet
         newName={newIng ?? ''}
-        open={newIng !== null}
-        onClose={() => setNewIng(null)}
+        fromDatabase={fromDb}
+        open={newIng !== null || fromDb !== null}
+        onClose={() => {
+          setNewIng(null);
+          setFromDb(null);
+        }}
         onSaved={(id) => setLines((ls) => [...ls, { key: crypto.randomUUID(), ingredient_id: id, qty: '', unit: 'g' }])}
       />
     </>
