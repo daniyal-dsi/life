@@ -1,5 +1,7 @@
-// Vercel function: USDA FoodData Central search, per 100 g.
-//   GET /api/usda?q=chicken%20breast   (Authorization: Bearer <Supabase access token>)
+// Vercel function: USDA FoodData Central, per 100 g.
+//   GET /api/usda?q=chicken%20breast   search
+//   GET /api/usda?id=171477            one food's household portions (e.g. "1 clove" = 3 g)
+//   (both with Authorization: Bearer <Supabase access token>)
 // The USDA key lives only in the USDA_API_KEY environment variable (Vercel),
 // never in the browser. Only signed-in app users can use it.
 
@@ -31,6 +33,9 @@ export async function GET(req: Request): Promise<Response> {
   if (!key) return json({ error: 'USDA search is not set up yet (no USDA_API_KEY in Vercel).' }, 503);
   if (!(await signedIn(req))) return json({ error: 'Sign in first.' }, 401);
 
+  const id = (new URL(req.url).searchParams.get('id') ?? '').trim();
+  if (id) return portions(id, key);
+
   const q = (new URL(req.url).searchParams.get('q') ?? '').trim();
   if (q.length < 2 || q.length > 100) return json({ error: 'Search for 2 to 100 characters.' }, 400);
 
@@ -60,3 +65,23 @@ export async function GET(req: Request): Promise<Response> {
     }));
   return json({ foods });
 }
+
+type UsdaPortion = { amount?: number; gramWeight?: number; modifier?: string; portionDescription?: string; measureUnit?: { name?: string } };
+
+/** Household measures for one food, as { label: "1 clove", grams: 3 }. */
+async function portions(id: string, key: string): Promise<Response> {
+  if (!/^\d{1,10}$/.test(id)) return json({ error: 'Bad food id.' }, 400);
+  const res = await fetch(`https://api.nal.usda.gov/fdc/v1/food/${id}?${new URLSearchParams({ api_key: key })}`);
+  if (!res.ok) return json({ error: `USDA lookup failed (${res.status}).` }, 502);
+  const body = (await res.json()) as { foodPortions?: UsdaPortion[] };
+  const out = (body.foodPortions ?? [])
+    .filter((p) => typeof p.gramWeight === 'number' && p.gramWeight > 0)
+    .map((p) => {
+      const unit = p.measureUnit?.name && p.measureUnit.name !== 'undetermined' ? p.measureUnit.name : '';
+      const what = [unit, p.modifier || p.portionDescription || ''].filter(Boolean).join(' ').trim();
+      return { label: `${p.amount ?? 1} ${what}`.trim(), grams: Math.round(p.gramWeight! * 10) / 10 };
+    })
+    .filter((p) => p.label.length > 1);
+  return json({ portions: out });
+}
+

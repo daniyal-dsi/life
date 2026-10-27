@@ -270,3 +270,20 @@ Proximates" sheet's Food Code, Food Name, Group, Energy (kcal), Protein,
 Carbohydrate and Fat columns ("Tr" counts as 0; rows without energy are
 skipped).
 
+## Logging food and ingredient weights
+
+- **Log food** (Fuel Log and Home) is one search box: My Foods, Meal Prep
+  meals and recent foods first, then CoFID and USDA, plus a barcode scan
+  (Open Food Facts). Enter it by hand only if nothing matches. Choose grams,
+  or servings when the food has a serving size; the totals update as you
+  type. A searched or scanned food is saved to My Foods once.
+- **Cooked weight** in Meal Prep is one line, "Weight when cooked: same as raw ·
+  Change". It's assumed from the name: meat and fish shrink (about 75 g from
+  100 g raw); rice, pasta, noodles, couscous, lentils, dried beans and grains
+  absorb water (about 250 g). Existing ingredients keep their saved figure.
+- **Grams per unit** is filled in automatically (USDA portion weights, else
+  clove 5 g, tsp 5, tbsp 15, cup 240, tin 400, bunch 25). When a recipe line
+  uses a unit the ingredient has no weight for, the line asks ("How much does
+  1 clove weigh? About 5 g") with **Use 5 g** or **Skip**; a skipped one is
+  "not counted" and the shopping list shows the count (e.g. "2 whole").
+

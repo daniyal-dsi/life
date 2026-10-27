@@ -101,12 +101,21 @@ accepts "82,5".
 - Reminder choices live in settings (`settings.reminders`); `push_log`
   stops repeats. Add new reminder kinds in `reminders.ts` and its test.
 
-## Nutrition data (Meal Prep)
-- `src/modules/mealprep/nutrition/`: `cofid.ts` (loads and searches
-  `public/data/cofid-2021.json`), `usda.ts` (calls `api/usda.ts`), `off.ts`
-  (Open Food Facts by barcode), `NutritionFinder.tsx`, `BarcodeScanner.tsx`
-  (ZXing, lazy-loaded into its own `barcode-*` chunk and kept out of the PWA
-  precache). Keep the OGL attribution line in NutritionFinder.
+## Nutrition data (shared by Fuel Log and Meal Prep)
+- `src/lib/nutrition/`: `cofid.ts` (loads and searches
+  `public/data/cofid-2021.json`), `usda.ts` (calls `api/usda.ts`: `?q=` search,
+  `?id=` portion weights), `off.ts` (Open Food Facts by barcode, with serving
+  size), `NutritionFinder.tsx`, `BarcodeScanner.tsx` (ZXing, lazy-loaded into
+  its own `barcode-*` chunk and kept out of the PWA precache). Keep the OGL
+  attribution line wherever results are listed.
+- Fuel Log's `FoodSheet.tsx` is the one "Log food" sheet (Fuel Log and Home).
+  Database foods are saved to My Foods once (matched on `source` + `ref`) with
+  `per_100g` and serving size; entries copy the values and record `grams` or
+  servings (`amountLabel()`).
+- Meal Prep's `guess.ts`: aisle, cooked weight (same 100 / shrinks 75 /
+  absorbs 250, from the name) and grams per unit (USDA portions, then
+  `UNIT_DEFAULTS`; "whole" only from the database or by asking). Only g and
+  ml count without a saved weight; recipe lines ask inline otherwise.
 - `api/`: Vercel functions (Web `GET(request)` handlers); every file there
   becomes an endpoint, so tests live in `test/`. They check the
   caller's Supabase token before using any server-side key.

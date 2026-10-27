@@ -5,7 +5,7 @@ import BarcodeScanner from './BarcodeScanner';
 import { loadCofid, searchFoods } from './cofid';
 import { lookupBarcode } from './off';
 import type { FoodResult } from './types';
-import { searchUsda } from './usda';
+import { searchUsda, withPortions } from './usda';
 
 // Find nutrition per 100 g: search CoFID (then USDA if needed), or scan a
 // product's barcode (Open Food Facts). Typing it in from the pack stays in
@@ -79,7 +79,7 @@ export default function NutritionFinder({
     <button
       key={`${r.source}-${r.ref}`}
       type="button"
-      onClick={() => onPick(r)}
+      onClick={async () => onPick(await withPortions(r))}
       className="flex w-full items-center justify-between gap-2.5 rounded-btn border border-line bg-bg px-3.5 py-3 text-left"
     >
       <span className="min-w-0">

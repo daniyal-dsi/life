@@ -1,8 +1,13 @@
 import { Link } from 'react-router-dom';
 import { Apple, BriefcaseBusiness, CalendarClock, ChevronRight, CookingPot, Dumbbell, Moon, Plus, Sun } from 'lucide-react';
 import { extraAreas } from '@/areas';
-import { Card, EmptyState, Header, IconButton, ModuleCard, Page, SectionTitle } from '@/components/ui';
-import { formatLong, greeting } from '@/lib/date';
+import { Button, Card, EmptyState, Header, IconButton, ModuleCard, Page, SectionTitle } from '@/components/ui';
+import { useState } from 'react';
+import { formatLong, greeting, todayISO } from '@/lib/date';
+import FoodSheet, { type FoodDraft } from '@/modules/fuellog/FoodSheet';
+import { FuelLogProvider } from '@/modules/fuellog/store';
+import type { Meal } from '@/modules/fuellog/types';
+import { MealPrepProvider } from '@/modules/mealprep/store';
 import { isDarkTheme, useSettings } from '@/lib/settings';
 
 // Step 1 placeholder. The numbers fill in as each module is built (Home is step 8).
@@ -16,8 +21,15 @@ function GlanceStat({ to, value, label, className }: { to: string; value: string
   );
 }
 
+/** Mealtime for "now": breakfast before 11, lunch before 15, dinner before 21, else snacks. */
+function mealNow(): Meal {
+  const h = new Date().getHours();
+  return h < 11 ? 'breakfast' : h < 15 ? 'lunch' : h < 21 ? 'dinner' : 'snacks';
+}
+
 export default function HomeScreen() {
   const { settings, update } = useSettings();
+  const [logFood, setLogFood] = useState<FoodDraft | null>(null);
   const now = new Date();
   const dark = isDarkTheme(settings.theme);
 
@@ -43,6 +55,18 @@ export default function HomeScreen() {
           <GlanceStat to="/work" value="0" label="P1 due this week" className="text-violet-hi [text-shadow:var(--glow-violet)]" />
         </div>
       </Card>
+
+      <Button variant="green" icon={Plus} onClick={() => setLogFood({ date: todayISO(), meal: mealNow() })}>
+        Log a food
+      </Button>
+      {logFood && (
+        // Loaded only when needed; the same sheet as the Fuel Log, without seeding sample data.
+        <FuelLogProvider seed={false}>
+          <MealPrepProvider>
+            <FoodSheet draft={logFood} onClose={() => setLogFood(null)} />
+          </MealPrepProvider>
+        </FuelLogProvider>
+      )}
 
       <section>
         <SectionTitle right="Calendar">Up next</SectionTitle>

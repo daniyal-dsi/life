@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { loadCofid, searchFoods } from './nutrition/cofid';
-import type { FoodResult } from './nutrition/types';
+import { loadCofid, searchFoods } from '@/lib/nutrition/cofid';
+import type { FoodResult } from '@/lib/nutrition/types';
 import { Plus } from 'lucide-react';
 import { BottomSheet, inputClass } from '@/components/ui';
 import { useMealPrep } from './store';

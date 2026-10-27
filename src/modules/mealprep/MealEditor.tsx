@@ -4,26 +4,28 @@ import { BackLink } from '@/modules/workflow/parts';
 import { Button, Card, Field, Notice, Segmented, SectionTitle, inputClass } from '@/components/ui';
 import { oneDp, parseDecimal } from '@/lib/number';
 import IngredientPicker from './IngredientPicker';
+import { dataOf } from '@/lib/useVersioned';
+import { UNIT_DEFAULTS } from './guess';
 import IngredientSheet from './IngredientSheet';
-import type { FoodResult } from './nutrition/types';
+import type { FoodResult } from '@/lib/nutrition/types';
 import { mealMacros, normaliseLink, siteName } from './macros';
 import { useMealPrep } from './store';
-import { MEAL_TYPES, UNITS, type Ingredient, type Meal, type MealType, type Unit } from './types';
+import { MEAL_TYPES, UNITS, type Ingredient, type IngredientData, type Meal, type MealType, type Unit } from './types';
 
 // Recipe editor: amounts are COOKED weight per portion. Per-portion calories
 // and macros update as you type; anything that can't be counted is listed.
 
-type DraftLine = { key: string; ingredient_id: string; qty: string; unit: Unit };
+type DraftLine = { key: string; ingredient_id: string; qty: string; unit: Unit; skip_weight?: boolean };
 
 const REASON = {
   'no amount': 'no amount',
-  'no unit size': 'needs grams per unit',
+  'no unit size': 'unit weight unknown',
   'no nutrition': 'no nutrition yet',
   missing: 'removed'
 };
 
 export default function MealEditor({ meal, onDone }: { meal: Meal | null; onDone: () => void }) {
-  const { ingredients, saveMeal, deleteMeal } = useMealPrep();
+  const { ingredients, saveMeal, deleteMeal, saveIngredient } = useMealPrep();
   const [name, setName] = useState('');
   const [type, setType] = useState<MealType>('dinner');
   const [link, setLink] = useState('');
@@ -61,7 +63,14 @@ export default function MealEditor({ meal, onDone }: { meal: Meal | null; onDone
     if (parsed.some((l) => l.qty !== null && !(l.qty > 0))) return setError('Amounts must be numbers above 0 (or left blank).');
     try {
       await saveMeal(
-        { name: n, type, link: linkNorm || null, lines: parsed.map((l) => ({ key: l.key, ingredient_id: l.ingredient_id, qty: l.qty === null ? null : Math.round(l.qty * 100) / 100, unit: l.unit })) },
+        { name: n, type, link: linkNorm || null, lines: parsed.map((l) => ({
+            key: l.key,
+            ingredient_id: l.ingredient_id,
+            qty: l.qty === null ? null : Math.round(l.qty * 100) / 100,
+            unit: l.unit,
+            ...(l.skip_weight ? { skip_weight: true } : {})
+          }))
+        },
         meal?.id
       );
       setError(null);
@@ -123,8 +132,11 @@ export default function MealEditor({ meal, onDone }: { meal: Meal | null; onDone
           {lines.map((l, i) => {
             const ing = ingOf(l.ingredient_id);
             const u = M.uncounted.find((x) => x.line.key === l.key);
+            // Ask how much one unit weighs, only for a unit this line uses and the ingredient lacks.
+            const ask = ing && u?.reason === 'no unit size' && !l.skip_weight ? ing : null;
             return (
-              <div key={l.key} className="flex items-center gap-2 border-line py-2 pl-3.5 pr-1 [&+&]:border-t">
+              <div key={l.key} className="border-line [&+&]:border-t">
+              <div className="flex items-center gap-2 py-2 pl-3.5 pr-1">
                 <button type="button" onClick={() => ing && setEditIng(ing)} className="min-w-0 flex-1 text-left">
                   <span className="flex items-center gap-1.5">
                     <span className="truncate font-semibold">{ing?.name ?? 'Removed ingredient'}</span>
@@ -158,6 +170,23 @@ export default function MealEditor({ meal, onDone }: { meal: Meal | null; onDone
                 >
                   <X size={16} aria-hidden />
                 </button>
+              </div>
+              {ask && (
+                <UnitWeightAsk
+                  ingredient={ask}
+                  unit={l.unit}
+                  onUse={(g) => void saveIngredient({ ...dataOf<IngredientData>(ask), grams_per: { ...ask.grams_per, [l.unit]: g } }, ask.id)}
+                  onSkip={() => setLines((ls) => ls.map((x, j) => (j === i ? { ...x, skip_weight: true } : x)))}
+                />
+              )}
+              {l.skip_weight && u?.reason === 'no unit size' && (
+                <p className="px-3.5 pb-2 text-[12px] text-muted">
+                  Weight of 1 {l.unit} skipped ·{' '}
+                  <button type="button" className="font-bold underline" onClick={() => setLines((ls) => ls.map((x, j) => (j === i ? { ...x, skip_weight: false } : x)))}>
+                    Add it
+                  </button>
+                </p>
+              )}
               </div>
             );
           })}
@@ -221,3 +250,45 @@ export default function MealEditor({ meal, onDone }: { meal: Meal | null; onDone
     </>
   );
 }
+
+/**
+ * "How much does 1 clove weigh? About 5 g" on a recipe line, with one-tap
+ * "Use 5 g" and "Skip". "whole" has no default, so it asks for a figure.
+ */
+function UnitWeightAsk({ ingredient, unit, onUse, onSkip }: { ingredient: Ingredient; unit: Unit; onUse: (grams: number) => void; onSkip: () => void }) {
+  const [typed, setTyped] = useState('');
+  const def = UNIT_DEFAULTS[unit];
+  const what = unit === 'whole' ? '1 whole one' : `1 ${unit}`;
+  const g = parseDecimal(typed);
+  return (
+    <div className="mx-3.5 mb-2.5 rounded-btn bg-sun-soft px-3 py-2.5 text-[13px] text-sun-ink">
+      <p className="font-semibold">
+        {ingredient.name}: how much does {what} weigh?{def ? ` About ${def} g.` : ''}
+      </p>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        {def && (
+          <button type="button" onClick={() => onUse(def)} className="h-9 rounded-ctl bg-sun px-3 font-bold text-hero">
+            Use {def} g
+          </button>
+        )}
+        <input
+          inputMode="decimal"
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+          placeholder={def ? 'Other' : 'grams'}
+          aria-label={`Grams in ${what} of ${ingredient.name}`}
+          className="tnum h-9 w-20 rounded-ctl border border-line2 bg-surface px-2 text-center text-[15px] text-ink"
+        />
+        {typed.trim() && (
+          <button type="button" disabled={!(g > 0)} onClick={() => onUse(Math.round(g * 10) / 10)} className="h-9 rounded-ctl border border-line bg-surface px-3 font-bold text-ink">
+            Use {g > 0 ? `${oneDp(g)} g` : ''}
+          </button>
+        )}
+        <button type="button" onClick={onSkip} className="h-9 px-2 font-bold underline">
+          Skip
+        </button>
+      </div>
+    </div>
+  );
+}
+
