@@ -1,4 +1,7 @@
+import type { Nutrition, Source } from '@/lib/nutrition/types';
 import type { Current } from '@/lib/versioned';
+
+export type { Nutrition, Source };
 
 // Meal Prep library. Shared by the household: both people see and edit the
 // same ingredients and meals.
@@ -23,8 +26,8 @@ export type Unit = 'g' | 'ml' | 'tsp' | 'tbsp' | 'cup' | 'tin' | 'whole' | 'clov
 export const UNITS: Unit[] = ['g', 'ml', 'tsp', 'tbsp', 'cup', 'tin', 'whole', 'clove', 'bunch'];
 /** Units an ingredient can have its own gram weight for. */
 export const SIZED_UNITS: Exclude<Unit, 'g' | 'ml'>[] = ['tin', 'whole', 'clove', 'bunch', 'cup', 'tbsp', 'tsp'];
-/** Fallback grams when an ingredient doesn't give its own (ml counted as grams). */
-export const DEFAULT_GRAMS: Partial<Record<Unit, number>> = { g: 1, ml: 1, tsp: 5, tbsp: 15, cup: 240 };
+/** Units that are already weights (ml counted as grams); every other unit needs a grams-per-unit figure. */
+export const BY_WEIGHT: Partial<Record<Unit, number>> = { g: 1, ml: 1 };
 
 export type MealType = 'breakfast' | 'lunch' | 'dinner';
 export const MEAL_TYPES: { id: MealType; label: string }[] = [
@@ -33,9 +36,6 @@ export const MEAL_TYPES: { id: MealType; label: string }[] = [
   { id: 'dinner', label: 'Dinner' }
 ];
 
-export type Nutrition = { kcal: number; p: number; c: number; f: number };
-export type Source = 'CoFID' | 'USDA' | 'Open Food Facts' | 'Pack' | 'Manual';
-export const SOURCES: Source[] = ['CoFID', 'USDA', 'Open Food Facts', 'Pack', 'Manual'];
 
 export type IngredientData = {
   name: string;
@@ -58,7 +58,14 @@ export type IngredientData = {
 };
 
 /** One ingredient line. Amounts are COOKED weight per portion. */
-export type Line = { key: string; ingredient_id: string; qty: number | null; unit: Unit };
+export type Line = {
+  key: string;
+  ingredient_id: string;
+  qty: number | null;
+  unit: Unit;
+  /** Asked how much one unit weighs and chose "Skip": not counted, not asked again. */
+  skip_weight?: boolean;
+};
 
 export type MealData = { name: string; type: MealType; link: string | null; lines: Line[] };
 

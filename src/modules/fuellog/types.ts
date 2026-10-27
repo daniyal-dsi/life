@@ -1,3 +1,4 @@
+import type { Nutrition, Source } from '@/lib/nutrition/types';
 import type { Current } from '@/lib/versioned';
 
 export const TABLES = {
@@ -43,8 +44,26 @@ export type ProfileData = {
   sample?: boolean;
 };
 
-/** Per serving. Macros are optional (null = not given). */
-export type FoodData = { name: string; kcal: number; p: number | null; c: number | null; f: number | null };
+/**
+ * A food in My Foods. Hand-made foods are per serving (macros optional,
+ * null = not given). Foods saved from a database search or scan also keep
+ * their source, database ref and values per 100 g; their kcal/p/c/f are per
+ * serving when the serving size is known, otherwise per 100 g.
+ */
+export type FoodData = {
+  name: string;
+  kcal: number;
+  p: number | null;
+  c: number | null;
+  f: number | null;
+  source?: Source;
+  /** Database id (CoFID code, USDA fdcId, barcode); with source, used to avoid duplicates. */
+  ref?: string;
+  per_100g?: Nutrition | null;
+  serving_grams?: number | null;
+  /** e.g. "1 bar (45 g)". */
+  serving_label?: string | null;
+};
 
 /**
  * One logged food. Keeps a copy of the food's values at the time, so editing
@@ -63,7 +82,24 @@ export type EntryData = {
   sample?: boolean;
   /** Set when logged from a Meal Prep meal (food_id is then the meal's id). */
   meal_id?: string | null;
+  /**
+   * How much was eaten. By weight: grams set, kcal/p/c/f are per 100 g and
+   * servings = grams / 100. By serving: kcal/p/c/f are per serving and
+   * servings is the count; serving_label says what one serving is.
+   */
+  grams?: number | null;
+  per_100g?: Nutrition | null;
+  serving_grams?: number | null;
+  serving_label?: string | null;
 };
+
+/** "150 g", "2 × 1 bar (45 g)" or "× 1.5" for a logged entry. */
+export function amountLabel(e: Pick<EntryData, 'grams' | 'servings' | 'serving_label'>): string {
+  const n = (x: number) => String(Math.round(x * 100) / 100);
+  if (e.grams) return `${Math.round(e.grams)} g`;
+  if (e.serving_label) return `${n(e.servings)} × ${e.serving_label}`;
+  return `× ${n(e.servings)}`;
+}
 
 export type WeightData = { date: string; kg: number; sample?: boolean };
 

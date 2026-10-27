@@ -1,4 +1,4 @@
-import { DEFAULT_GRAMS, type Ingredient, type Line } from './types';
+import { BY_WEIGHT, type Ingredient, type Line } from './types';
 
 // Per-portion nutrition for a recipe, and why any lines aren't counted.
 
@@ -7,7 +7,8 @@ export type Macros = { kcal: number; p: number; c: number; f: number; counted: n
 
 export function gramsOf(line: Line, ing: Ingredient): number | null | undefined {
   if (line.qty === null || !(line.qty > 0)) return null; // no amount
-  const per = ing.grams_per[line.unit] ?? DEFAULT_GRAMS[line.unit];
+  // Grams and ml count directly; other units only with a known weight for this ingredient.
+  const per = BY_WEIGHT[line.unit] ?? ing.grams_per[line.unit];
   return per ? line.qty * per : undefined; // undefined: no size for this unit
 }
 

@@ -1,21 +1,28 @@
 import { useEffect, useState } from 'react';
 import { BottomSheet, Button, Field, Notice, Switch, inputClass } from '@/components/ui';
+import NutritionFinder from '@/lib/nutrition/NutritionFinder';
+import { SOURCES, friendlyName, type FoodResult, type Portion } from '@/lib/nutrition/types';
 import { oneDp, parseDecimal } from '@/lib/number';
+import { COOKED, autoGrams, cookedKind, guessAisle, guessCooked, portionGrams, type CookedKind } from './guess';
 import { useMealPrep } from './store';
-import { AISLES, SIZED_UNITS, SOURCES, type Aisle, type Ingredient, type IngredientData, type Source, type Unit } from './types';
-import NutritionFinder from './nutrition/NutritionFinder';
-import { friendlyName, guessAisle, guessCooked, type FoodResult } from './nutrition/types';
+import { AISLES, type Aisle, type Ingredient, type IngredientData, type Source } from './types';
 import { suggestionsFor, vagueMessage } from './vague';
 
 // Add or edit an ingredient. Vague names are blocked; an imported "Type?"
-// ingredient offers specific names to pick from.
+// ingredient offers specific names to pick from. Cooked weight is one line
+// (same as raw unless the name says otherwise) and grams per unit is filled
+// in automatically, never asked for here.
 
 type Form = {
   name: string;
   aisle: Aisle;
   staple: boolean;
-  cooked: string;
-  grams: Partial<Record<Unit, string>>;
+  /** Cooked weight from 100 g raw. */
+  cooked: number;
+  /** Why it was assumed, e.g. the database name it came from. */
+  cookedWhy: string | null;
+  /** Database portion weights, used for grams per unit. */
+  portions: Portion[];
   kcal: string;
   p: string;
   c: string;
@@ -24,7 +31,20 @@ type Form = {
   sourceName: string;
 };
 
-const empty = (name = ''): Form => ({ name, aisle: 'veg', staple: false, cooked: '100', grams: {}, kcal: '', p: '', c: '', f: '', source: 'Manual', sourceName: '' });
+const empty = (name = ''): Form => ({
+  name,
+  aisle: 'veg',
+  staple: false,
+  cooked: 100,
+  cookedWhy: null,
+  portions: [],
+  kcal: '',
+  p: '',
+  c: '',
+  f: '',
+  source: 'Manual',
+  sourceName: ''
+});
 
 function toForm(i: Ingredient): Form {
   const s = (n: number | undefined) => (n === undefined ? '' : oneDp(n));
@@ -32,8 +52,10 @@ function toForm(i: Ingredient): Form {
     name: i.name,
     aisle: i.aisle,
     staple: i.staple,
-    cooked: s(i.cooked_per_100g_raw),
-    grams: Object.fromEntries(Object.entries(i.grams_per).map(([u, g]) => [u, s(g)])),
+    // Existing ingredients keep their saved figure.
+    cooked: i.cooked_per_100g_raw,
+    cookedWhy: null,
+    portions: [],
     kcal: s(i.nutrition?.kcal),
     p: s(i.nutrition?.p),
     c: s(i.nutrition?.c),
@@ -43,12 +65,15 @@ function toForm(i: Ingredient): Form {
   };
 }
 
-/** Form values from a database result (for a new ingredient, also name, aisle and cooked weight). */
+/** Form values from a database result (for a new or renamed ingredient, also name, aisle and cooked weight). */
 function fromResult(r: FoodResult, base: Form, isNew: boolean): Form {
   const aisle = guessAisle(r);
   return {
     ...base,
-    ...(isNew ? { name: friendlyName(r.name), aisle, staple: aisle === 'spice', cooked: String(guessCooked(r, aisle)) } : {}),
+    ...(isNew
+      ? { name: friendlyName(r.name), aisle, staple: aisle === 'spice', cooked: COOKED[guessCooked(r.name, aisle)].grams, cookedWhy: r.name }
+      : {}),
+    portions: r.portions ?? [],
     kcal: String(r.nutrition.kcal),
     p: String(r.nutrition.p),
     c: String(r.nutrition.c),
@@ -79,15 +104,21 @@ export default function IngredientSheet({
   const [f, setF] = useState<Form>(empty());
   const [error, setError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState(false);
+  const [changingCooked, setChangingCooked] = useState(false);
+  const [exact, setExact] = useState('');
   /** 'nutrition' fills the numbers; 'type' also sets a specific name (for "Type?"). */
   const [finder, setFinder] = useState<'nutrition' | 'type' | null>(null);
 
   useEffect(() => {
     if (!open) return;
-    const base = ingredient ? toForm(ingredient) : empty(newName ?? '');
+    // A new ingredient typed by name gets its cooked weight assumed from the name too.
+    const typed = newName?.trim() ? { ...empty(newName), cooked: COOKED[guessCooked(newName)].grams, cookedWhy: newName.trim() } : empty();
+    const base = ingredient ? toForm(ingredient) : typed;
     setF(fromDatabase && !ingredient ? fromResult(fromDatabase, base, true) : base);
     setError(null);
     setConfirm(false);
+    setChangingCooked(false);
+    setExact('');
   }, [open, ingredient, newName, fromDatabase]);
 
   const vague = vagueMessage(f.name);
@@ -99,15 +130,13 @@ export default function IngredientSheet({
     if (!name) return setError('Give the ingredient a name.');
     if (vague) return setError(vague);
     if (ingredients.some((i) => i.id !== ingredient?.id && i.name.toLowerCase() === name.toLowerCase())) return setError('You already have that ingredient.');
-    const cooked = parseDecimal(f.cooked);
-    if (!(cooked > 0 && cooked <= 400)) return setError('Cooked weight from 100 g raw should be between 1 and 400 g.');
-    const grams: Partial<Record<Unit, number>> = {};
-    for (const [u, s] of Object.entries(f.grams)) {
-      if (!s?.trim()) continue;
-      const g = parseDecimal(s);
-      if (!(g > 0)) return setError(`Grams per ${u} must be a number above 0.`);
-      grams[u as Unit] = Math.round(g * 10) / 10;
-    }
+    // An exact figure typed under "Change" wins over the three choices.
+    const typed = exact.trim() ? parseDecimal(exact) : NaN;
+    if (exact.trim() && !(typed > 0 && typed <= 400)) return setError('The exact cooked weight should be between 1 and 400 g from 100 g raw.');
+    const cooked = exact.trim() ? Math.round(typed * 10) / 10 : f.cooked;
+    // Grams per unit is filled in, never asked for: database portions, then
+    // defaults for a new ingredient; an existing one keeps its saved weights.
+    const grams = ingredient ? { ...portionGrams(f.portions), ...ingredient.grams_per } : autoGrams(f.portions);
     const nums = [f.kcal, f.p, f.c, f.f].map(parseDecimal);
     const anyNut = [f.kcal, f.p, f.c, f.f].some((s) => s.trim());
     if (anyNut && nums.some((n) => !(n >= 0))) return setError('Enter calories, protein, carbs and fat per 100 g, or leave them all blank.');
@@ -116,7 +145,7 @@ export default function IngredientSheet({
       name,
       aisle: f.aisle,
       staple: f.staple,
-      cooked_per_100g_raw: Math.round(cooked * 10) / 10,
+      cooked_per_100g_raw: cooked,
       grams_per: grams,
       nutrition: anyNut ? { kcal: Math.round(nums[0]), p: oneDpN(nums[1]), c: oneDpN(nums[2]), f: oneDpN(nums[3]) } : null,
       source: anyNut ? f.source : null,
@@ -170,22 +199,29 @@ export default function IngredientSheet({
         <Field label="Name" hint={vague ?? undefined}>
           {(id) => <input id={id} value={f.name} maxLength={80} onChange={set('name')} placeholder="e.g. Chicken thigh" autoComplete="off" className={inputClass} />}
         </Field>
-        <div className="grid grid-cols-2 gap-2.5">
-          <Field label="Aisle">
-            {(id) => (
-              <select id={id} value={f.aisle} onChange={(e) => setF({ ...f, aisle: e.target.value as Aisle })} className={inputClass}>
-                {AISLES.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.label}
-                  </option>
-                ))}
-              </select>
-            )}
-          </Field>
-          <Field label="Cooked g from 100 g raw" hint="e.g. chicken breast 75">
-            {(id) => <input id={id} inputMode="decimal" value={f.cooked} onChange={set('cooked')} className={`${inputClass} tnum`} />}
-          </Field>
-        </div>
+        <Field label="Aisle">
+          {(id) => (
+            <select id={id} value={f.aisle} onChange={(e) => setF({ ...f, aisle: e.target.value as Aisle })} className={inputClass}>
+              {AISLES.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.label}
+                </option>
+              ))}
+            </select>
+          )}
+        </Field>
+        <CookedWeight
+          cooked={f.cooked}
+          why={f.cookedWhy}
+          changing={changingCooked}
+          exact={exact}
+          onChange={() => setChangingCooked(true)}
+          onPick={(k) => {
+            setF({ ...f, cooked: COOKED[k].grams, cookedWhy: null });
+            setExact('');
+          }}
+          onExact={setExact}
+        />
         <div className="flex items-center justify-between gap-3">
           <span>
             <span className="block font-semibold">Staple</span>
@@ -223,27 +259,6 @@ export default function IngredientSheet({
           )}
         </div>
 
-        <div>
-          <p className="mb-1.5 text-[13px] font-semibold text-muted">Grams per unit (where a recipe uses it)</p>
-          <div className="grid grid-cols-4 gap-2">
-            {SIZED_UNITS.map((u) => (
-              <Field key={u} label={u}>
-                {(id) => (
-                  <input
-                    id={id}
-                    inputMode="decimal"
-                    value={f.grams[u] ?? ''}
-                    placeholder={{ cup: '240', tbsp: '15', tsp: '5' }[u as string] ?? ''}
-                    onChange={(e) => setF({ ...f, grams: { ...f.grams, [u]: e.target.value } })}
-                    className={`${inputClass} tnum px-1.5 text-center`}
-                  />
-                )}
-              </Field>
-            ))}
-          </div>
-          <p className="mt-1.5 text-[12px] text-muted">Blank cup, tbsp and tsp use 240, 15 and 5 g. ml counts as grams.</p>
-        </div>
-
         {error && <Notice tone="rose">{error}</Notice>}
         <Button variant="sun" onClick={() => void save()}>
           {ingredient ? 'Save ingredient' : 'Add ingredient'}
@@ -253,8 +268,8 @@ export default function IngredientSheet({
           initialQuery={f.name}
           onClose={() => setFinder(null)}
           onPick={(r) => {
-            const next = fromResult(r, f, false);
-            setF(finder === 'type' ? { ...next, name: friendlyName(r.name) } : next);
+            // Picking a type renames it, so its cooked weight is re-assumed too.
+            setF(finder === 'type' ? fromResult(r, f, true) : fromResult(r, f, false));
             setFinder(null);
           }}
         />
@@ -273,3 +288,67 @@ function sameNutrition(i: Ingredient, nums: number[]): boolean {
   const n = i.nutrition;
   return !!n && Math.round(nums[0]) === n.kcal && oneDpN(nums[1]) === n.p && oneDpN(nums[2]) === n.c && oneDpN(nums[3]) === n.f;
 }
+
+/** "Weight when cooked: same as raw · Change", with three choices and an optional exact figure. */
+function CookedWeight({
+  cooked,
+  why,
+  changing,
+  exact,
+  onChange,
+  onPick,
+  onExact
+}: {
+  cooked: number;
+  why: string | null;
+  changing: boolean;
+  exact: string;
+  onChange: () => void;
+  onPick: (k: CookedKind) => void;
+  onExact: (v: string) => void;
+}) {
+  const kind = cookedKind(cooked);
+  const label =
+    kind === 'same'
+      ? 'same as raw'
+      : kind
+        ? `${COOKED[kind].label} (about ${cooked} g from 100 g raw)`
+        : `${oneDp(cooked)} g from 100 g raw`;
+  return (
+    <div>
+      <p className="text-[15px]">
+        <span className="font-semibold">Weight when cooked:</span> {label}
+        {!changing && (
+          <>
+            {' · '}
+            <button type="button" onClick={onChange} className="font-bold underline">
+              Change
+            </button>
+          </>
+        )}
+      </p>
+      {why && kind !== 'same' && <p className="mt-0.5 text-[12px] text-muted">Assumed from “{why}”.</p>}
+      {changing && (
+        <div className="mt-2 flex flex-col gap-2" role="radiogroup" aria-label="Weight when cooked">
+          {(Object.keys(COOKED) as CookedKind[]).map((k) => (
+            <button
+              key={k}
+              type="button"
+              role="radio"
+              aria-checked={!exact.trim() && kind === k}
+              onClick={() => onPick(k)}
+              className={`rounded-btn border px-3.5 py-2.5 text-left text-[14px] font-semibold ${!exact.trim() && kind === k ? 'border-sun bg-sun-soft' : 'border-line bg-bg'}`}
+            >
+              {COOKED[k].choice}
+              <span className="block text-[12px] font-normal text-muted">{k === 'same' ? '100 g raw stays 100 g' : `100 g raw becomes about ${COOKED[k].grams} g`}</span>
+            </button>
+          ))}
+          <Field label="Exact figure (optional): grams cooked from 100 g raw">
+            {(id) => <input id={id} inputMode="decimal" value={exact} onChange={(e) => onExact(e.target.value)} placeholder="e.g. 68" className={`${inputClass} tnum`} />}
+          </Field>
+        </div>
+      )}
+    </div>
+  );
+}
+

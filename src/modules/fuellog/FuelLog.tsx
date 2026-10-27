@@ -9,7 +9,7 @@ import FoodsSheet from './FoodsSheet';
 import ProfileSheet from './ProfileSheet';
 import { FuelLogProvider, useFuelLog } from './store';
 import { dayStatus, totals, type DayStatus } from './targets';
-import { GOALS, MEALS, type Meal } from './types';
+import { GOALS, MEALS, amountLabel, type Meal } from './types';
 import WeightSheet from './WeightSheet';
 import { useAuth } from '@/lib/auth';
 import EatSheet, { type EatTarget } from '@/modules/mealprep/EatSheet';
@@ -46,7 +46,7 @@ function Dashboard() {
   const today = todayISO();
   const [date, setDate] = useState(today);
   const [food, setFood] = useState<FoodDraft | null>(null);
-  const [sheet, setSheet] = useState<'foods' | 'foods-from-log' | 'profile' | 'weight' | null>(null);
+  const [sheet, setSheet] = useState<'foods' | 'profile' | 'weight' | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
   const [eat, setEat] = useState<EatTarget | null>(null);
   const { user } = useAuth();
@@ -253,7 +253,7 @@ function Dashboard() {
                     className="flex w-full items-center justify-between gap-2 px-4 py-1.5 text-left text-[15px]"
                   >
                     <span className="min-w-0">
-                      {e.name} <span className="text-muted">× {oneDp(e.servings)}</span>
+                      {e.name} <span className="text-muted">{amountLabel(e)}</span>
                     </span>
                     <span className="tnum font-semibold">{num(e.kcal * e.servings)}</span>
                   </button>
@@ -360,11 +360,10 @@ function Dashboard() {
         )}
       </Card>
 
-      <FoodSheet draft={food} onClose={() => setFood(null)} onManageFoods={() => setSheet('foods-from-log')} />
+      <FoodSheet draft={food} onClose={() => setFood(null)} />
       <FoodsSheet
-        open={sheet === 'foods' || sheet === 'foods-from-log'}
+        open={sheet === 'foods'}
         onClose={() => setSheet(null)}
-        onBack={sheet === 'foods-from-log' ? () => setSheet(null) : undefined}
       />
       <ProfileSheet open={sheet === 'profile'} onClose={() => setSheet(null)} />
       <WeightSheet open={sheet === 'weight'} onClose={() => setSheet(null)} />

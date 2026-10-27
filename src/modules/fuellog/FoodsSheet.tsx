@@ -40,7 +40,7 @@ export default function FoodsSheet({ open, onClose, onBack }: { open: boolean; o
     }
     if (!form.id && foods.some((f) => f.name.toLowerCase() === name.toLowerCase())) return setError('You already have that food.');
     try {
-      await saveFood({ name, kcal: Math.round(kcal), p: macro(form.p), c: macro(form.c), f: macro(form.f) }, form.id);
+      await saveFood({ name, kcal: Math.round(kcal), p: macro(form.p), c: macro(form.c), f: macro(form.f), source: 'Manual' }, form.id);
       setForm(blank);
       setError(null);
     } catch (err) {
@@ -88,11 +88,15 @@ export default function FoodsSheet({ open, onClose, onBack }: { open: boolean; o
                 <span className="block font-bold">{f.name}</span>
                 <span className="tnum text-[13px] text-muted">
                   {Math.round(f.kcal)} kcal · P {str(f.p) || '–'} · C {str(f.c) || '–'} · F {str(f.f) || '–'}
+                  {f.per_100g ? ` · ${f.source}, ${f.serving_label ? `per ${f.serving_label}` : 'per 100 g'}` : ' · per serving'}
                 </span>
               </span>
-              <button type="button" aria-label={`Edit ${f.name}`} onClick={() => edit(f)} className="inline-flex h-10 w-10 items-center justify-center rounded-ctl text-muted">
-                <Pencil size={16} aria-hidden />
-              </button>
+              {/* Database foods keep their database values; only hand-made foods are edited here. */}
+              {!f.per_100g && (
+                <button type="button" aria-label={`Edit ${f.name}`} onClick={() => edit(f)} className="inline-flex h-10 w-10 items-center justify-center rounded-ctl text-muted">
+                  <Pencil size={16} aria-hidden />
+                </button>
+              )}
               <button
                 type="button"
                 aria-label={confirm === f.id ? `Tap again to delete ${f.name}` : `Delete ${f.name}`}

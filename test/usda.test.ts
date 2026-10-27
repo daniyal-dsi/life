@@ -26,5 +26,21 @@ check('maps Foundation Atwater kcal', body.foods[1].nutrition.kcal === 39 && bod
 check('drops foods without energy', body.foods.length === 2);
 check('key not in response', !JSON.stringify(body).includes('secret-key'));
 check('key sent only to USDA', calls.filter((c) => c.includes('secret-key')).every((c) => c.startsWith('https://api.nal.usda.gov/')));
+// Portions: one food's household measures.
+globalThis.fetch = (async (url: string, init?: any) => {
+  if (String(url).includes('/auth/v1/user')) return new Response('{}', { status: init?.headers?.Authorization === 'Bearer good' ? 200 : 401 });
+  return new Response(JSON.stringify({ foodPortions: [
+    { amount: 1, gramWeight: 3, modifier: 'clove', measureUnit: { name: 'undetermined' } },
+    { amount: 1, gramWeight: 136, measureUnit: { name: 'cup' }, modifier: 'chopped' },
+    { amount: 1, gramWeight: 0, modifier: 'nothing' }
+  ] }), { status: 200 });
+}) as any;
+r = await GET(new Request('https://app/api/usda?id=169230', { headers: { Authorization: 'Bearer good' } }));
+const pb = await r.json();
+check('portions mapped', JSON.stringify(pb.portions) === JSON.stringify([{ label: '1 clove', grams: 3 }, { label: '1 cup chopped', grams: 136 }]), pb.portions);
+r = await GET(new Request('https://app/api/usda?id=abc', { headers: { Authorization: 'Bearer good' } }));
+check('bad id -> 400', r.status === 400);
+r = await GET(new Request('https://app/api/usda?id=169230'));
+check('portions need sign-in', r.status === 401);
 console.log(failures ? `${failures} FAILED` : 'ALL PASSED');
 process.exit(failures ? 1 : 0);

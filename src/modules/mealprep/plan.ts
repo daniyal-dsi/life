@@ -1,6 +1,6 @@
 import { addDays, fromISODate, startOfWeek, toISODate } from '@/lib/date';
 import { mealMacros } from './macros';
-import { DEFAULT_GRAMS, MEAL_TYPES, type Aisle, type Ingredient, type Meal, type MealType, type PlanEntry, type ShopRow, type Unit } from './types';
+import { BY_WEIGHT, MEAL_TYPES, type Aisle, type Ingredient, type Meal, type MealType, type PlanEntry, type ShopRow, type Unit } from './types';
 
 // Week plan maths: batches (cooks), your daily macros, and the shopping list.
 
@@ -60,7 +60,7 @@ const COUNT_LABEL: Partial<Record<Unit, [string, string]>> = {
   cup: ['cup', 'cups'],
   tbsp: ['tbsp', 'tbsp'],
   tsp: ['tsp', 'tsp'],
-  whole: ['', '']
+  whole: ['whole', 'whole']
 };
 
 function unitText(q: number, u: Unit): string {
@@ -86,14 +86,16 @@ export function amountToBuy(ing: Ingredient, units: Partial<Record<Unit, number>
     if (u === 'ml') return { text: q >= 1000 ? `${trim(q / 1000)} l` : `${Math.round(q)} ml`, cooked: '' };
     return { text: unitText(q, u), cooked: '' };
   }
+  // Mixed units: add up what has a known weight; units without one stay as counts.
   let g = 0;
-  let exact = true;
+  const counts: string[] = [];
   for (const u of us) {
-    const per = ing.grams_per[u] ?? DEFAULT_GRAMS[u];
+    const per = BY_WEIGHT[u] ?? ing.grams_per[u];
     if (per) g += units[u]! * per;
-    else exact = false;
+    else counts.push(unitText(units[u]!, u));
   }
-  return { text: `${exact ? '' : 'about '}${fmtG(raw(g))}`, cooked: shrinks ? fmtG(g) : '' };
+  const parts = [...(g ? [fmtG(raw(g))] : []), ...counts];
+  return { text: parts.join(' + '), cooked: shrinks && g ? fmtG(g) : '' };
 }
 
 export type ShopItem = {
