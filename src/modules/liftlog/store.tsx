@@ -37,9 +37,11 @@ const OPTIONS = {
   needsSeed: (v: Record<keyof typeof TABLES, Version<unknown>[]>) => v.exercises.length === 0,
   seed: (uid: string) => buildSeed(uid)
 };
+const NO_SEEDING = { needsSeed: () => false, seed: async () => ({}) };
 
-export function LiftLogProvider({ children }: { children: ReactNode }) {
-  const { userId, versions, loading, error, append } = useVersionedTables(TABLES, OPTIONS);
+/** `seed={false}` when used from another module (Calendar), so it never adds Lift Log's sample data. */
+export function LiftLogProvider({ children, seed = true }: { children: ReactNode; seed?: boolean }) {
+  const { userId, versions, loading, error, append } = useVersionedTables(TABLES, seed ? OPTIONS : NO_SEEDING);
 
   const exercises = useMemo(
     () => currentOf(versions.exercises as Version<ExerciseData>[]).sort(byName),

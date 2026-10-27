@@ -236,3 +236,45 @@ button:disabled {
 .animate-sheet {
   animation: sheet-up 0.2s ease-out;
 }
+
+/* Calendar (step 6) */
+.cb-work { --kb: var(--hero); --kf: 255 255 255; --kl: var(--hero-border); --ki: 255 255 255 / 0.16; }
+.cal-col {
+  background-color: rgb(var(--surface));
+  background-image: linear-gradient(rgb(var(--line)) 1px, transparent 1px);
+  background-size: 100% var(--hh);
+  cursor: copy;
+}
+.cal-col.drop { outline: 2px dashed rgb(var(--violet)); outline-offset: -2px; }
+.cal-ev { touch-action: manipulation; -webkit-touch-callout: none; cursor: grab; }
+.cal-ev.lifted, .calchip.lifted { transform: scale(1.04); box-shadow: var(--shadow); z-index: 6; }
+.cal-ev.dragging { opacity: 0.9; z-index: 5; box-shadow: var(--shadow); cursor: grabbing; }
+.cal-rs { cursor: ns-resize; touch-action: manipulation; }
+.cal-rs::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  width: 22px;
+  height: 3px;
+  margin-left: -11px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.35;
+}
+.cal-wk .cal-rs::after { width: 12px; margin-left: -6px; }
+.calchip { touch-action: manipulation; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; cursor: grab; }
+.cal-ghost {
+  position: fixed;
+  z-index: 90;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: var(--shadow);
+}

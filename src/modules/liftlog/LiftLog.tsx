@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { BookOpen, ChevronDown, ChevronUp, ClipboardList, Pencil, Plus } from 'lucide-react';
 import { Donut, LineChart } from '@/components/charts';
 import { Badge, Button, Card, Notice, SectionTitle } from '@/components/ui';
@@ -29,7 +30,17 @@ function Dashboard() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [chartEx, setChartEx] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [params, setParams] = useSearchParams();
   const today = todayISO();
+
+  // "Log workout" on a Calendar gym block links here with ?start=<template id>.
+  const startId = params.get('start');
+  useEffect(() => {
+    if (!startId || loading) return;
+    const t = templates.find((x) => x.id === startId);
+    if (t) setDraft(draftFromTemplate(t, stats.workouts));
+    setParams({ m: 'lift' }, { replace: true });
+  }, [startId, loading, templates, stats.workouts, setParams]);
 
   const exName = (id: string) => exercises.find((e) => e.id === id)?.name ?? 'Removed exercise';
   const title = (w: Workout) =>

@@ -18,7 +18,9 @@ const VERSIONED_TABLES = [
   'workflow_buckets',
   'workflow_projects',
   'workflow_milestones',
-  'workflow_people'
+  'workflow_people',
+  'calendar_blocks',
+  'calendar_work'
 ] as const;
 
 /** Versioned tables shared by the household (exported for, and imported into, your current household). */

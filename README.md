@@ -34,7 +34,7 @@ npm run preview   # serve the build
 2. **Run the migrations, in order.** In the dashboard open **SQL Editor > New
    query**, paste the whole of each file in [`supabase/migrations/`](supabase/migrations)
    and click **Run**, one file at a time: `0001_foundations.sql`, then
-   `0002_liftlog.sql`, `0003_fuellog.sql`, `0004_workflow.sql`, `0005_reminders.sql`, `0006_mealprep_library.sql`, `0007_mealprep_plan.sql`, and so on. Each file runs once; when a new step adds a
+   `0002_liftlog.sql`, `0003_fuellog.sql`, `0004_workflow.sql`, `0005_reminders.sql`, `0006_mealprep_library.sql`, `0007_mealprep_plan.sql`, `0008_calendar.sql`, and so on. Each file runs once; when a new step adds a
    file, run just that one. (With the Supabase CLI you can instead run
    `supabase link` then `supabase db push`.)
 3. **Sign-in emails.** Under **Authentication > URL Configuration** set the
@@ -109,8 +109,8 @@ supabase/migrations/   SQL to run in Supabase
 
 ## Not built yet
 
-Calendar, Faith and the full Home screen. See the build order in the brief. See
-the build order in the brief.
+The Google Calendar sync (step 6b), Faith and the full Home screen. See the
+build order in the brief.
 
 ## Lift Log (step 2)
 
@@ -287,3 +287,27 @@ skipped).
   1 clove weigh? About 5 g") with **Use 5 g** or **Skip**; a skipped one is
   "not counted" and the shopping list shows the count (e.g. "2 whole").
 
+## Calendar (step 6a: planner)
+
+- **Day** and **Week** views, 06:00 to 23:00, with a line for now. Weeks run
+  Monday to Sunday.
+- **Placing a block**: drag a chip (Work, Gym, or a Workflow bucket) onto the
+  timeline. On a phone, press and hold the chip first, so the page still
+  scrolls. Or tap a chip, then tap a time. Tapping an empty time opens
+  "Plan a block".
+- **Bucket blocks** can name one open task from that bucket (soonest due
+  first) or "No specific task". The block only shows the task; nothing is
+  ticked off in Work.
+- **Gym blocks** name a Lift Log template; **Log workout** on the block opens
+  that workout in Lift Log, filled in from the template.
+- **Moving and resizing**: drag a block up or down (or to another day in Week
+  view); drag its bottom edge to change the length. Everything snaps to 15
+  minutes.
+- **Work** shows Monday to Friday, 9:00 to 17:00, until you change it. Tap it
+  to change one day's hours, make them your usual hours, or mark the day as
+  not working. Dropping Work on a weekend adds it to that day.
+- Home's **Up next today** shows the next three things still to come today.
+- Data: `calendar_blocks` and `calendar_work` (run `0008_calendar.sql`), both
+  personal and versioned, with `calendar_blocks_current` and
+  `calendar_work_current` views. Opening Calendar doesn't add Workflow or Lift
+  Log sample data.
