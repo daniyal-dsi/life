@@ -45,14 +45,15 @@ type WorkflowState = {
 
 const Ctx = createContext<WorkflowState | null>(null);
 
-export function WorkflowProvider({ children }: { children: ReactNode }) {
+/** `seed={false}` when used from another module (Calendar, Home), so it never adds Workflow's sample data. */
+export function WorkflowProvider({ children, seed = true }: { children: ReactNode; seed?: boolean }) {
   const { settings } = useSettings();
   const options = useMemo(
     () => ({
-      needsSeed: (v: Record<Key, Version<unknown>[]>) => v.buckets.length === 0,
+      needsSeed: (v: Record<Key, Version<unknown>[]>) => seed && v.buckets.length === 0,
       seed: (uid: string) => buildSeed(uid, new Date(), settings.name)
     }),
-    [settings.name]
+    [settings.name, seed]
   );
   const { userId, versions, loading, error, append } = useVersionedTables(TABLES, options);
 

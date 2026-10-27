@@ -1,13 +1,14 @@
 import { Link } from 'react-router-dom';
-import { Apple, BriefcaseBusiness, CalendarClock, ChevronRight, CookingPot, Dumbbell, Moon, Plus, Sun } from 'lucide-react';
+import { Apple, BriefcaseBusiness, ChevronRight, CookingPot, Dumbbell, Moon, Plus, Sun } from 'lucide-react';
 import { extraAreas } from '@/areas';
-import { Button, Card, EmptyState, Header, IconButton, ModuleCard, Page, SectionTitle } from '@/components/ui';
+import { Button, Card, Header, IconButton, ModuleCard, Page, SectionTitle } from '@/components/ui';
 import { useState } from 'react';
 import { formatLong, greeting, todayISO } from '@/lib/date';
 import FoodSheet, { type FoodDraft } from '@/modules/fuellog/FoodSheet';
 import { FuelLogProvider } from '@/modules/fuellog/store';
 import type { Meal } from '@/modules/fuellog/types';
 import { MealPrepProvider } from '@/modules/mealprep/store';
+import UpNext from '@/modules/calendar/UpNext';
 import { isDarkTheme, useSettings } from '@/lib/settings';
 
 // Step 1 placeholder. The numbers fill in as each module is built (Home is step 8).
@@ -68,15 +69,7 @@ export default function HomeScreen() {
         </FuelLogProvider>
       )}
 
-      <section>
-        <SectionTitle right="Calendar">Up next</SectionTitle>
-        <EmptyState
-          icon={CalendarClock}
-          tone="violet"
-          title="Nothing planned yet"
-          body="Your next three blocks and Google Calendar events will show here once Calendar is built."
-        />
-      </section>
+      <UpNext />
 
       <section>
         <SectionTitle>Your areas</SectionTitle>

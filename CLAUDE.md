@@ -40,6 +40,12 @@ Hosted on Vercel. Path alias `@` -> `src`.
   and arrow keys); used for Workflow milestones.
 - Module sub-screens use nested routes under the area path (Workflow:
   `/work`, `/work/b/:id`, `/work/p/:id`), inside the module's provider.
+- `src/modules/calendar/`: planner (step 6a). `time.ts` (pure: work hours per
+  date, overlap lanes; tested by `time.test.ts`), `buckets.ts` (block colours),
+  `Calendar.tsx` (timeline and pointer drag, ported from the prototype),
+  `BlockSheet.tsx`, `UpNext.tsx` (Home). It reads Workflow and Lift Log through
+  their providers with `seed={false}`, which never adds sample data. Gym blocks
+  link to `/health?m=lift&start=<template id>`.
 - `src/components/charts.tsx`: LineChart (hover readout + table view) and
   Donut (legend with shares). Chart colours are validated tokens (`--g-*` for
   muscle groups); run the dataviz validator before adding a new palette.
