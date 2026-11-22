@@ -34,7 +34,7 @@ npm run preview   # serve the build
 2. **Run the migrations, in order.** In the dashboard open **SQL Editor > New
    query**, paste the whole of each file in [`supabase/migrations/`](supabase/migrations)
    and click **Run**, one file at a time: `0001_foundations.sql`, then
-   `0002_liftlog.sql`, `0003_fuellog.sql`, `0004_workflow.sql`, `0005_reminders.sql`, `0006_mealprep_library.sql`, `0007_mealprep_plan.sql`, `0008_calendar.sql`, and so on. Each file runs once; when a new step adds a
+   `0002_liftlog.sql`, `0003_fuellog.sql`, `0004_workflow.sql`, `0005_reminders.sql`, `0006_mealprep_library.sql`, `0007_mealprep_plan.sql`, `0008_calendar.sql`, `0009_faith.sql`, and so on. Each file runs once; when a new step adds a
    file, run just that one. (With the Supabase CLI you can instead run
    `supabase link` then `supabase db push`.)
 3. **Sign-in emails.** Under **Authentication > URL Configuration** set the
@@ -109,8 +109,8 @@ supabase/migrations/   SQL to run in Supabase
 
 ## Not built yet
 
-The Google Calendar sync (step 6b) and Faith (step 7); Home's Faith card fills
-in with step 7. See the build order in the brief.
+The Google Calendar sync (step 6b), and Faith's WhatsApp inbox (7b), Quran
+log (7c) and duas (7d). See the build order in the brief.
 
 ## Lift Log (step 2)
 
@@ -328,3 +328,29 @@ skipped).
   now ending. It's worked out live from your data, so there's nothing extra
   stored and no migration.
 - Home reads every module without adding any module's sample data.
+
+## Faith (step 7a: prayers)
+
+- **Prayer times** are calculated in the app for your location (Fajr 18°,
+  Isha 17°, standard or Hanafi Asr, and a high-latitude rule for UK summer
+  nights). Until you tap **Use my location** they're calculated for Tilford.
+  The location is rounded to about 100 m and kept in your settings.
+- **Masjid Mubarak times**: copy the WhatsApp timings message, tap **Paste
+  message**, check the times it found, and save. It reads 12 or 24 hour times,
+  "Zuhr & Asr 1:15pm", "Maghrib: Sunset", Jumu'ah and a "from <date>" line.
+  Each update is kept and shared with your household; the newest one starting
+  on or before a date applies. Choose whether the mosque or calculated time
+  is shown first.
+- **Logging**: "I've prayed …" logs the prayer due now at the current time.
+  Tap any prayer to log or edit it with any time, at the mosque, or combined
+  (Zuhr + Asr, Maghrib + Isha logs both). Step back through days, or tap a day
+  in the week grid, to log earlier days. Isha prayed after midnight counts for
+  the evening before.
+- **Scoring**: on time before the last hour of the window (the window ends when
+  the next prayer starts; sunrise for Fajr), late in that last hour, missed
+  after it, or made up if logged later. Combined prayers use the combined
+  window. Adherence shows on-time out of 5; the week grid shows each day.
+- Home's Faith card shows the prayer due now (or the next one) and today's
+  on-time count.
+- Data: `faith_prayers` (personal) and `faith_mosque` (household), run
+  `0009_faith.sql`; views `faith_prayers_current` and `faith_mosque_current`.

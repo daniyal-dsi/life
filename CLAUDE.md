@@ -46,6 +46,13 @@ Hosted on Vercel. Path alias `@` -> `src`.
   `BlockSheet.tsx`, `UpNext.tsx` (Home). It reads Workflow and Lift Log through
   their providers with `seed={false}`, which never adds sample data. Gym blocks
   link to `/health?m=lift&start=<template id>`.
+- `src/modules/faith/` (step 7a): `times.ts` (calculated times, no
+  dependencies, ported from the prototype), `score.ts` (windows, statuses,
+  next and due prayer), `parse.ts` (Masjid Mubarak WhatsApp message), all
+  tested by `faith.test.ts`; `store.tsx` (personal `faith_prayers` plus
+  household `faith_mosque`), `Prayers.tsx`, `PrayerSheet.tsx`,
+  `MosqueSheet.tsx`, `HomeCard.tsx`. Asr, main time and location are
+  `settings.faith`.
 - Home (`src/screens/Home.tsx`) wraps every module provider with
   `seed={false}` (Meal Prep too) and gets its numbers from the pure
   `src/screens/home/summary.ts` (glance, nudges, weekly summary; tested by

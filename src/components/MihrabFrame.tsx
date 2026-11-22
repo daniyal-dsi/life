@@ -22,29 +22,42 @@ export function star8(cx: number, cy: number, R: number, r: number): string {
 const APEX = star8(195, 13, 7, 4.2);
 const PATTERN_STAR = star8(15, 15, 7, 4.2);
 
-/** Eight-point star medallion used on prayer rows. */
-export function StarMedallion({
-  status,
-  size = 40
-}: {
-  status: 'ontime' | 'due' | 'missed' | 'upcoming';
-  size?: number;
-}) {
-  const fill = status === 'ontime' ? 'rgb(var(--faith))' : 'rgb(var(--surface))';
-  const stroke = {
-    ontime: 'rgb(var(--faith))',
-    due: gold,
-    missed: 'rgb(var(--rose))',
-    upcoming: 'rgb(var(--line2))'
+/** Prayer status shown by a medallion (see src/modules/faith/score.ts). */
+export type MedalStatus = 'ontime' | 'late' | 'qada' | 'early' | 'missed' | 'now' | 'lastHour' | 'upcoming';
+
+/**
+ * Eight-point star medallion used on prayer rows: solid emerald with a gold
+ * tick when prayed on time, sun (late) or violet (made up) with a tick, a gold
+ * dot when due now, a red cross when missed.
+ */
+export function StarMedallion({ status, logged = false, size = 40 }: { status: MedalStatus; logged?: boolean; size?: number }) {
+  const [fill, stroke] = {
+    ontime: ['rgb(var(--faith))', 'rgb(var(--faith))'],
+    late: ['rgb(var(--sun))', 'rgb(var(--sun))'],
+    qada: ['rgb(var(--violet))', 'rgb(var(--violet))'],
+    early: ['rgb(var(--surface))', 'rgb(var(--rose))'],
+    missed: ['rgb(var(--surface))', 'rgb(var(--rose))'],
+    now: ['rgb(var(--surface))', gold],
+    lastHour: ['rgb(var(--surface))', 'rgb(var(--sun))'],
+    upcoming: ['rgb(var(--surface))', 'rgb(var(--line2))']
   }[status];
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden>
       <path d={star8(20, 20, 19, 14.5)} fill={fill} stroke={stroke} strokeWidth={1.6} />
-      {status === 'ontime' && (
-        <path d="M13 20.5l5 5 9-10" fill="none" stroke={goldHi} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
+      {logged && (
+        <path
+          d="M13 20.5l5 5 9-10"
+          fill="none"
+          stroke={status === 'ontime' ? goldHi : status === 'early' ? 'rgb(var(--rose))' : 'rgb(var(--hero))'}
+          strokeWidth={2.6}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       )}
-      {status === 'due' && <circle cx={20} cy={20} r={4} fill={gold} />}
-      {status === 'missed' && (
+      {!logged && (status === 'now' || status === 'lastHour') && (
+        <circle cx={20} cy={20} r={4} fill={status === 'now' ? gold : 'rgb(var(--sun))'} />
+      )}
+      {!logged && status === 'missed' && (
         <path d="M15 15l10 10M25 15L15 25" stroke="rgb(var(--rose))" strokeWidth={2.2} strokeLinecap="round" />
       )}
     </svg>
