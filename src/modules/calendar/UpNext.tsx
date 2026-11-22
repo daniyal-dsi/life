@@ -2,24 +2,15 @@ import { Link } from 'react-router-dom';
 import { CalendarClock } from 'lucide-react';
 import { EmptyState, SectionTitle } from '@/components/ui';
 import { todayISO } from '@/lib/date';
-import { WorkflowProvider, useWorkflow } from '@/modules/workflow/store';
+import { useWorkflow } from '@/modules/workflow/store';
 import { look, type ChipKey } from './buckets';
-import { CalendarProvider, useCalendar } from './store';
+import { useCalendar } from './store';
 import { hhmm, itemsFor } from './time';
 
-// Home's "Up next today": the next three things still to come today.
+// Home's "Up next today": the next three things still to come today. Needs
+// WorkflowProvider and CalendarProvider above it (Home provides both).
 
 export default function UpNext() {
-  return (
-    <WorkflowProvider seed={false}>
-      <CalendarProvider>
-        <List />
-      </CalendarProvider>
-    </WorkflowProvider>
-  );
-}
-
-function List() {
   const { blocks, work, loading } = useCalendar();
   const { buckets } = useWorkflow();
   const n = new Date();

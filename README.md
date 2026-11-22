@@ -109,8 +109,8 @@ supabase/migrations/   SQL to run in Supabase
 
 ## Not built yet
 
-The Google Calendar sync (step 6b), Faith and the full Home screen. See the
-build order in the brief.
+The Google Calendar sync (step 6b) and Faith (step 7); Home's Faith card fills
+in with step 7. See the build order in the brief.
 
 ## Lift Log (step 2)
 
@@ -311,3 +311,20 @@ skipped).
   personal and versioned, with `calendar_blocks_current` and
   `calendar_work_current` views. Opening Calendar doesn't add Workflow or Lift
   Log sample data.
+
+## Home (step 8)
+
+- **Today at a glance**: lift streak (and whether you've trained today),
+  calories left today, and P1 tasks due by Sunday (overdue included). Quick
+  actions log a workout, log a food or add a task.
+- **Nudges** appear only when something needs doing: fewer than 3 workouts
+  this week, a P1 task due within 3 days, other overdue tasks, and nothing
+  eaten logged after midday. Turn them off in More › Reminders (Nudges).
+- **Up next today** (Calendar) and **Your areas**, with live numbers from Lift
+  Log, Fuel Log, Meal Prep and Workflow. Every card opens its module.
+- **Weekly summary**: last week's workouts, volume and new PRs, days on
+  calorie target, tasks completed and still open, body-weight change, and the
+  biggest task due in the week after. From 18:00 on Sunday it shows the week
+  now ending. It's worked out live from your data, so there's nothing extra
+  stored and no migration.
+- Home reads every module without adding any module's sample data.
