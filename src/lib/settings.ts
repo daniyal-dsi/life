@@ -9,11 +9,19 @@ import { supabase } from './supabase';
 export type Theme = 'light' | 'dark' | 'system';
 /** Which reminders to send (UK times). Matches supabase/functions/_shared/reminders.ts. */
 export type ReminderPrefs = { daily: boolean; p1: boolean; overdue: boolean; weekly: boolean; nudges: boolean };
-export type Settings = { name: string; theme: Theme; reminders: ReminderPrefs };
+/** Faith: Asr method, which time leads (mosque or calculated), and where times are calculated for. */
+export type FaithPrefs = {
+  asr: 'standard' | 'hanafi';
+  primary: 'mosque' | 'calc';
+  /** Last location used, rounded; null until the phone's location is shared (then Tilford is used). */
+  loc: { name: string; lat: number; lng: number } | null;
+};
+export type Settings = { name: string; theme: Theme; reminders: ReminderPrefs; faith: FaithPrefs };
 export type SettingsRow = Row & { data: Settings };
 
 export const DEFAULT_REMINDERS: ReminderPrefs = { daily: true, p1: true, overdue: true, weekly: true, nudges: true };
-export const DEFAULT_SETTINGS: Settings = { name: '', theme: 'system', reminders: DEFAULT_REMINDERS };
+export const DEFAULT_FAITH: FaithPrefs = { asr: 'standard', primary: 'mosque', loc: null };
+export const DEFAULT_SETTINGS: Settings = { name: '', theme: 'system', reminders: DEFAULT_REMINDERS, faith: DEFAULT_FAITH };
 
 const THEME_CACHE = 'lo:theme';
 
@@ -48,7 +56,10 @@ function normalise(data: Partial<Settings> | null | undefined): Settings {
   const reminders = Object.fromEntries(
     (Object.keys(DEFAULT_REMINDERS) as (keyof ReminderPrefs)[]).map((k) => [k, typeof r[k] === 'boolean' ? r[k] : DEFAULT_REMINDERS[k]])
   ) as ReminderPrefs;
-  return { name: typeof data?.name === 'string' ? data.name : '', theme, reminders };
+  const f = (data?.faith ?? {}) as Partial<FaithPrefs>;
+  const loc = f.loc && Number.isFinite(f.loc.lat) && Number.isFinite(f.loc.lng) ? { name: String(f.loc.name ?? 'Your location'), lat: f.loc.lat, lng: f.loc.lng } : null;
+  const faith: FaithPrefs = { asr: f.asr === 'hanafi' ? 'hanafi' : 'standard', primary: f.primary === 'calc' ? 'calc' : 'mosque', loc };
+  return { name: typeof data?.name === 'string' ? data.name : '', theme, reminders, faith };
 }
 
 export async function loadSettingsHistory(userId: string): Promise<SettingsRow[]> {

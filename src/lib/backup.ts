@@ -20,11 +20,12 @@ const VERSIONED_TABLES = [
   'workflow_milestones',
   'workflow_people',
   'calendar_blocks',
-  'calendar_work'
+  'calendar_work',
+  'faith_prayers'
 ] as const;
 
 /** Versioned tables shared by the household (exported for, and imported into, your current household). */
-const SHARED_TABLES = ['mealprep_ingredients', 'mealprep_meals', 'mealprep_plan', 'mealprep_shopping'] as const;
+const SHARED_TABLES = ['mealprep_ingredients', 'mealprep_meals', 'mealprep_plan', 'mealprep_shopping', 'faith_mosque'] as const;
 
 const APP = 'life-organiser';
 const VERSION = 1;

@@ -21,6 +21,8 @@ import { formatLong, fromISODate, greeting, todayISO } from '@/lib/date';
 import { isDarkTheme, useSettings } from '@/lib/settings';
 import { CalendarProvider } from '@/modules/calendar/store';
 import UpNext from '@/modules/calendar/UpNext';
+import FaithHomeCard from '@/modules/faith/HomeCard';
+import { FaithProvider } from '@/modules/faith/store';
 import FoodSheet, { type FoodDraft } from '@/modules/fuellog/FoodSheet';
 import { FuelLogProvider, useFuelLog } from '@/modules/fuellog/store';
 import type { Meal } from '@/modules/fuellog/types';
@@ -46,7 +48,9 @@ export default function HomeScreen() {
         <WorkflowProvider seed={false}>
           <MealPrepProvider seed={false}>
             <CalendarProvider>
-              <Home />
+              <FaithProvider>
+                <Home />
+              </FaithProvider>
             </CalendarProvider>
           </MealPrepProvider>
         </WorkflowProvider>
@@ -183,14 +187,7 @@ function Home() {
         </section>
       )}
 
-      <Link to="/faith" className="flex items-center gap-3 rounded-card border border-gold bg-faith p-4 text-niche">
-        <Moon size={20} className="text-gold-hi" aria-hidden />
-        <span className="min-w-0 flex-1">
-          <span className="block font-bold">Faith</span>
-          <span className="block text-[13px] opacity-80">Next prayer and today's on-time count arrive in step 7</span>
-        </span>
-        <ChevronRight size={18} aria-hidden />
-      </Link>
+      <FaithHomeCard />
 
       <UpNext />
 
