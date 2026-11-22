@@ -50,16 +50,17 @@ type MealPrepState = {
 const Ctx = createContext<MealPrepState | null>(null);
 const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name);
 
-export function MealPrepProvider({ children }: { children: ReactNode }) {
+/** `seed={false}` from Home, so opening it never adds the starter library. */
+export function MealPrepProvider({ children, seed = true }: { children: ReactNode; seed?: boolean }) {
   const { household } = useHousehold();
   const householdId = household?.id ?? null;
   const options = useMemo(
     () => ({
       householdId,
-      needsSeed: (v: Record<Key, Version<unknown>[]>) => v.ingredients.length === 0,
+      needsSeed: (v: Record<Key, Version<unknown>[]>) => seed && v.ingredients.length === 0,
       seed: (uid: string, hid?: string) => buildSeed(uid, hid!)
     }),
-    [householdId]
+    [householdId, seed]
   );
   const { userId, versions, loading, error, append, reload } = useVersionedTables(TABLES, options);
 

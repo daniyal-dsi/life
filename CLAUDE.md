@@ -46,6 +46,10 @@ Hosted on Vercel. Path alias `@` -> `src`.
   `BlockSheet.tsx`, `UpNext.tsx` (Home). It reads Workflow and Lift Log through
   their providers with `seed={false}`, which never adds sample data. Gym blocks
   link to `/health?m=lift&start=<template id>`.
+- Home (`src/screens/Home.tsx`) wraps every module provider with
+  `seed={false}` (Meal Prep too) and gets its numbers from the pure
+  `src/screens/home/summary.ts` (glance, nudges, weekly summary; tested by
+  `summary.test.ts`). Add a new module's Home stat there first.
 - `src/components/charts.tsx`: LineChart (hover readout + table view) and
   Donut (legend with shares). Chart colours are validated tokens (`--g-*` for
   muscle groups); run the dataviz validator before adding a new palette.
